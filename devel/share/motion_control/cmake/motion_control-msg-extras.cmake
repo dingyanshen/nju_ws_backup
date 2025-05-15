@@ -1,0 +1,2 @@
+set(motion_control_MESSAGE_FILES "")
+set(motion_control_SERVICE_FILES "/home/eaibot/nju_ws/src/motion_control/srv/getFrontDist.srv;/home/eaibot/nju_ws/src/motion_control/srv/getRightDist.srv;/home/eaibot/nju_ws/src/motion_control/srv/getLeftDist.srv;/home/eaibot/nju_ws/src/motion_control/srv/getRightFrontDist.srv;/home/eaibot/nju_ws/src/motion_control/srv/getLeftFrontDist.srv;/home/eaibot/nju_ws/src/motion_control/srv/getDiffAngle.srv")

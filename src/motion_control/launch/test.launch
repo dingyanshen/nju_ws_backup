@@ -1,0 +1,10 @@
+<launch>
+    <group>
+    <include file="$(find dashgo_nav)/launch/navigation_imu_2.launch">
+    </include>
+    <node pkg="camera" type="take_photo.py" name="photo_service" output="screen"/>
+    <node pkg="dobot" type="DobotServer" name="DobotServer" required="true" args="port_dobot" output="screen"/>
+    <node pkg="dobot" type="DobotUse.py" name="dobot_service" output="screen"/>
+    <node pkg="motion_control" type="test.py" name="test" output="screen"/>
+    </group>
+</launch>

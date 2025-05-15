@@ -1,0 +1,6 @@
+bool shelf_z     # 邮件在货架的层
+bool pos_z       # 邮件在平台的层
+float32 error_x  # x偏差
+float32 error_y  # y偏差
+---
+bool success     # 成功响应

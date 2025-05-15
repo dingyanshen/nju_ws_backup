@@ -1,0 +1,6 @@
+<launch>
+    <group>
+    <node pkg="dobot" type="DobotServer" name="DobotServer" required="true" args="port_dobot" output="screen"/>
+    <node pkg="dobot" type="Action.py" name="Action" output="screen"/>
+    </group>
+</launch>

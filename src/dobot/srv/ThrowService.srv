@@ -1,0 +1,4 @@
+bool pos_z        # 邮件在平台的层
+bool mailbox_pos  # 邮箱位置
+---
+bool success      # 成功响应

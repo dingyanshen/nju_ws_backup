@@ -1,0 +1,2 @@
+camera:dobot:motion_control
+-DCATKIN_DEVEL_PREFIX=/home/eaibot/nju_ws/devel -DCMAKE_INSTALL_PREFIX=/home/eaibot/nju_ws/install -G Unix Makefiles
