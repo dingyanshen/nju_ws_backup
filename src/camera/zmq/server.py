@@ -76,13 +76,15 @@ def catch():
     img = cv2.imread(message)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     barcodes, points = model.detectAndDecode(gray)
-    if points is None:
-        error_x = error_y = 0
+    if len(points) > 1:
+        error_x = error_y = [0]
+    if len(points) == 0:
+        error_x = error_y = [0]
     else:
-        error_x, error_y = pnp(points)
+        error_x, error_y = pnp.pnp(points)
     path = "/home/eaibot/nju_ws/src/camera/config/error.txt"
     with open(path, 'w') as f:
-        f.write(f"{error_x} {error_y}")
+        f.write(f"{error_x[0]} {error_y[0]}")
     socket.send(str(path).encode())
 
 def find_province_number(results, match, num):

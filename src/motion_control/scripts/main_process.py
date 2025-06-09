@@ -273,7 +273,6 @@ class MainController:
             elif mail['positions_z'] == 1 and self.platform_state == 1: # 上层抓到上层
                 response = self.photo_proxy(1)
                 catch_type = [1, 1, response.error_x, response.error_y]
-                catch_type = [1, 1, 0, 0]
                 response = self.grasp_proxy(*catch_type)
                 self.platform_state = 2
             elif mail['positions_z'] == 2 and self.platform_state == 0: # 下层抓到下层
@@ -404,4 +403,11 @@ class MainController:
 if __name__ == "__main__":
     position_path = "/home/eaibot/nju_ws/src/motion_control/config/position.txt"
     controller = MainController(position_path)
-    controller.run()
+    # controller.run()
+    while True:
+        user_input = input("CATCH:")
+        response = controller.photo_proxy(int(user_input))
+        print(response)
+        # catch_type = [2-user_input, 0, response.error_x, response.error_y]
+        # response = controller.grasp_proxy(*catch_type)
+        # print(response)

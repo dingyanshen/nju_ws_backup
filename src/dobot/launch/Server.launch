@@ -1,0 +1,5 @@
+<launch>
+    <group>
+    <node pkg="dobot" type="DobotServer" name="DobotServer" required="true" args="port_dobot" output="screen"/>
+    </group>
+</launch>

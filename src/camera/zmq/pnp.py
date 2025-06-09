@@ -12,6 +12,10 @@ camera_intrinsic = {
 }
 
 def pnp(img_points):
+    img_points = img_points[0]
+    temp_point = img_points[2]
+    img_points[2] = img_points[3]
+    img_points[3] = temp_point
     object_points = np.array([[0, 0, qrcode_len], [0, qrcode_len, qrcode_len], [0, 0, 0], [0, qrcode_len, 0]], dtype=np.float32)
     image_points = np.array(img_points, dtype=np.float32)
     success, rotation_vector, translation_vector = cv2.solvePnP(object_points, image_points, camera_intrinsic["mtx"], camera_intrinsic["dist"])

@@ -28,32 +28,39 @@ class PhotoServiceNode:
             mode = 1
         elif req.type == 2:
             mode = 2
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         for _ in range(10):
             self.cap.grab()
         ret, frame = self.cap.read()
         if not ret:
             rospy.logwarn("read camera failed")
-            return PhotoServiceResponse([], [])
+            return PhotoServiceResponse(0, 0)
         image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
         image_path = "/home/eaibot/nju_ws/src/camera/img/{}_catch.jpg".format(image_name)
         if mode == 1:
-            frame[0:960, 0:320] = (255, 255, 255)
-            frame[0:960, 960:1280] = (255, 255, 255)
-            frame[480:960, 0:1280] = (255, 255, 255)
+            frame[0:480, 0:150] = (255, 255, 255)
+            frame[0:480, 490:640] = (255, 255, 255)
+            frame[240:480, 0:640] = (255, 255, 255)
         elif mode == 2:
-            frame[0:960, 0:320] = (255, 255, 255)
-            frame[0:960, 960:1280] = (255, 255, 255)
-            frame[0:480, 0:1280] = (255, 255, 255)
+            frame[0:480, 0:150] = (255, 255, 255)
+            frame[0:480, 490:640] = (255, 255, 255)
+            frame[0:240, 0:640] = (255, 255, 255)
         cv2.imwrite(image_path, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
         socket.send_string(image_path)
         response = socket.recv()
         with open(response, 'r') as f:
-            lines = f.readlines()
-            error_x = float(lines[0].strip())
-            error_y = float(lines[1].strip())
-        return PhotoServiceResponse([error_x], [error_y])
+            data = f.read().strip().split()
+        if len(data) != 2:
+            rospy.logwarn("Error reading error.txt")
+            return PhotoServiceResponse(0, 0)
+        try:
+            error_x = float(data[0])
+            error_y = float(data[1])
+        except ValueError:
+            rospy.logwarn("Error parsing error.txt")
+            return PhotoServiceResponse(0, 0)
+        return PhotoServiceResponse(error_x, error_y)
         
     def handle_shelf_photo(self, req):
         if req.type == 1 or req.type == 2 or req.type == 3:

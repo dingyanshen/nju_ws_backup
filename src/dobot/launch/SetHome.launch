@@ -1,0 +1,5 @@
+<launch>
+    <group>
+    <node pkg="dobot" type="SetHome.py" name="SetHome" output="screen"/>
+    </group>
+</launch>

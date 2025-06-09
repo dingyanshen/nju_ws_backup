@@ -215,31 +215,33 @@ class Dobot():
         return True
     
     def Catch(self, height1, height2, error_x, error_y): #抓取快递盒(带误差参数)
+        MAXX = 9
+        MAXY = 10
+        if error_x > MAXX:
+            error_x = MAXX
+        if error_x < -MAXX:
+            error_x = -MAXX
+        if error_y > MAXY:
+            error_y = MAXY
+        if error_y < -MAXY:
+            error_y = -MAXY
         error_x = 10 * error_x
         error_y = 10 * error_y
-        if error_x > 90:
-            error_x = 90
-        if error_x < -90:
-            error_x = -90
-        if error_y > 30:
-            error_y = 30
-        if error_y < -30:
-            error_y = -30
         calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
         calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
         calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
         self.setTheta(0)
         rospy.sleep(0.1)
-        self.setPose(0+error_x,305,height1+20,0)
+        self.setPose(0+error_x,305,height1+18,0)
         rospy.sleep(0.1)
         self.setTheta(calculate_PWM)
         rospy.sleep(0.6)
         self.setPose(0+error_x,305,height1,0)
         self.suckupObject()
         rospy.sleep(0.3)
-        self.setPose(0+error_x,305,height1+20,0)
+        self.setPose(0+error_x,305,height1+18,0)
         rospy.sleep(0.1)
-        self.setPose(0+error_x,200,height1+20,0)
+        self.setPose(0+error_x,200,height1+18,0)
         rospy.sleep(0.1)
         self.setPose(0+error_x,143,height1/3.5-5,0)
         rospy.sleep(0.1)
@@ -276,15 +278,15 @@ if __name__ == '__main__':
     dobot.setPose(250,0,0,0)
     rospy.sleep(0.1)
     dobot.setTheta(0)
-    dobot.CatchBox(1, 0, 0, 0) #把上层邮件抓取到上方
-    dobot.CatchBox(0, 1, 0, 0) #把下层邮件抓取到下方
+
+    xerror = 0
+    yerror = 0
+    while True:
+        dobot.CatchBox(0, 0, xerror, yerror)
+        rospy.sleep(0.5)
+        dobot.CatchBox(0, 0, -xerror, yerror)
+        rospy.sleep(0.5)
+        xerror += 1
 
     # dobot.ThrowBox(1, 0) #把上层邮件投掷到左侧邮箱
     # dobot.ThrowBox(0, 0) #把下层邮件投掷到左侧邮箱
-
-    while True:
-        pose = dobot.getPose()
-        print('x: %.2f, y: %.2f, z: %.2f, r: %.2f' % (pose[0], pose[1], pose[2], pose[3]))
-        pwm = dobot.getPWM()
-        print('PWM: %.2f' % pwm)
-        rospy.sleep(1)
