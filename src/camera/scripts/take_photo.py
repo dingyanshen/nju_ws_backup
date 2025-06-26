@@ -41,11 +41,11 @@ class PhotoServiceNode:
         if mode == 1:
             frame[0:480, 0:150] = (255, 255, 255)
             frame[0:480, 490:640] = (255, 255, 255)
-            frame[240:480, 0:640] = (255, 255, 255)
+            frame[200:480, 0:640] = (255, 255, 255)
         elif mode == 2:
             frame[0:480, 0:150] = (255, 255, 255)
             frame[0:480, 490:640] = (255, 255, 255)
-            frame[0:240, 0:640] = (255, 255, 255)
+            frame[0:200, 0:640] = (255, 255, 255)
         cv2.imwrite(image_path, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
         socket.send_string(image_path)
         response = socket.recv()

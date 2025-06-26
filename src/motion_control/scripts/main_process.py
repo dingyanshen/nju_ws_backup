@@ -391,10 +391,10 @@ class MainController:
         self.mail_table_L = self.select_nearest_province(self.mail_table_L, self.L_provinces) # 对mail_table按照priority_provinces重新排序
         print("开始处理左侧优先省份邮件...")
         self.process_priority_mails(self.mail_table_L, self.L_provinces) # 处理左侧优先省份邮件
-        
+
         self.mail_table = [] # 清空邮件列表
         self.mail_table = self.mail_table_L + self.mail_table_R # 合并邮件列表
-        
+
         print("开始处理非优先省份邮件...")
         self.process_non_priority_mails(self.mail_table) # 处理非优先省份邮件
 
@@ -403,11 +403,11 @@ class MainController:
 if __name__ == "__main__":
     position_path = "/home/eaibot/nju_ws/src/motion_control/config/position.txt"
     controller = MainController(position_path)
-    # controller.run()
-    while True:
-        user_input = input("CATCH:")
-        response = controller.photo_proxy(int(user_input))
-        print(response)
-        # catch_type = [2-user_input, 0, response.error_x, response.error_y]
-        # response = controller.grasp_proxy(*catch_type)
-        # print(response)
+    controller.run()
+    # while True:
+    #     user_input = input("CATCH:")
+    #     response = controller.photo_proxy(int(user_input))
+    #     print(response)
+    #     # catch_type = [2-user_input, 0, response.error_x, response.error_y]
+    #     # response = controller.grasp_proxy(*catch_type)
+    #     # print(response)

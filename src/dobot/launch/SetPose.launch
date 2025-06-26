@@ -1,0 +1,5 @@
+<launch>
+    <group>
+    <node pkg="dobot" type="SetPose.py" name="SetPose" output="screen"/>
+    </group>
+</launch>

@@ -1,6 +1,7 @@
 #! /usr/bin/env python2.7
 # -*- coding:utf-8 -*-
 
+import time
 import rospy
 from dobot.srv import GetPose, GetPoseRequest
 from dobot.srv import SetPTPCmd, SetPTPCmdRequest
@@ -118,8 +119,13 @@ class Dobot():
         SetPoseReq.r = r
         self.SetPTPCmdClient.call(SetPoseReq)
         tempPose = self.getPose()
+        current_time = time.time()
         while abs(tempPose[0] - x) > 1 or abs(tempPose[1] - y) > 1 or abs(tempPose[2] - z) > 1 or abs(tempPose[3] - r) > 1:
             tempPose = self.getPose()
+            if time.time() - current_time > 5.0:
+                print('[WARN] SetPose timeout!')
+                rospy.logwarn('SetPose timeout!')
+                return False
         return True
     
     def setHome(self): #复位
@@ -230,22 +236,87 @@ class Dobot():
         calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
         calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
         calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
+
+        ###100 -10
         self.setTheta(0)
         rospy.sleep(0.1)
-        self.setPose(0+error_x,305,height1+18,0)
+        self.setPose(0+error_x,305+error_y,height1+18,0)
+        #  0 305 8
+        #  0 305 118
         rospy.sleep(0.1)
         self.setTheta(calculate_PWM)
         rospy.sleep(0.8)
-        self.setPose(0+error_x,305,height1,0)
+        self.setPose(0+error_x,305+error_y,height1,0)
+        #  0 305 -10
+        #  0 305 100
         self.suckupObject()
         rospy.sleep(0.3)
-        self.setPose(0+error_x,305,height1+18,0)
+        self.setPose(0+error_x,305+error_y,height1+18,0)
+        #  0 305 8
+        #  0 305 118
         rospy.sleep(0.1)
-        self.setPose(0+error_x,200,height1+18,0)
+        self.setPose(0+error_x,max(200+error_y,140),height1+18,0)
+        #  0 200 8
+        #  0 200 118
         rospy.sleep(0.1)
-        self.setPose(0+error_x,143,height1/3.5-5,0)
+        self.setPose(0+error_x,135,height1/3.5-5,0)
+        #  0 143 -8
+        #  0 143 25
         rospy.sleep(0.1)
         self.setPose(250,0,height1/3.5-5,0)
+        #  250 0 -8
+        #  250 0 25
+        self.setPose(250,0,height2,0)
+        #  250 0 -10
+        #  250 0 -10
+        self.setTheta(0)
+        rospy.sleep(0.6)
+        self.releaseObject()
+        rospy.sleep(0.1)
+        return True
+    
+    def Catch2(self, height1, height2, error_x, error_y): #抓取快递盒(带误差参数)
+        MAXX = 6
+        MAXY = 10
+        if error_x > MAXX:
+            error_x = MAXX
+        if error_x < -MAXX:
+            error_x = -MAXX
+        if error_y > MAXY:
+            error_y = MAXY
+        if error_y < -MAXY:
+            error_y = -MAXY
+        error_x = 10 * error_x
+        error_y = 10 * error_y
+        calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
+        calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
+        calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
+
+        ###100 -10
+        self.setTheta(0)
+        rospy.sleep(0.1)
+        self.setPose(0+error_x,min(max(250+error_y,195),295),118,0)
+        #  0 305 8
+        #  0 305 118
+        rospy.sleep(0.1)
+        self.setTheta(calculate_PWM)
+        rospy.sleep(0.8)
+        self.setPose(0+error_x,min(max(250+error_y,195),295),100,0)
+        #  0 305 -10
+        #  0 305 100
+        self.suckupObject()
+        rospy.sleep(0.3)
+        self.setPose(0+error_x,min(max(250+error_y,195),295),118,0)
+        #  0 305 8
+        #  0 305 118
+        rospy.sleep(0.1)
+        for i in range(10):
+            self.setPose(6*i+error_x,195,118,0)
+            self.setTheta(calculate_PWM-0.04*i)
+        self.setTheta(0.3)
+        rospy.sleep(0.1)
+        self.setPose(250,0,118,0)
+        self.setTheta(0)
         self.setPose(250,0,height2,0)
         self.setTheta(0)
         rospy.sleep(0.6)
@@ -279,14 +350,54 @@ if __name__ == '__main__':
     rospy.sleep(0.1)
     dobot.setTheta(0)
 
-    xerror = 0
-    yerror = 0
     while True:
-        dobot.CatchBox(0, 0, xerror, yerror)
-        rospy.sleep(0.5)
-        dobot.CatchBox(0, 0, -xerror, yerror)
-        rospy.sleep(0.5)
-        xerror += 1
-
-    # dobot.ThrowBox(1, 0) #把上层邮件投掷到左侧邮箱
-    # dobot.ThrowBox(0, 0) #把下层邮件投掷到左侧邮箱
+        choice = raw_input("请输入选择 p末端 t吸盘 s吸取 l释放 a解警 r复位 c抓下层 c2抓上层 q退出：")
+        if choice == "p":
+            print("请输入末端位置坐标（空格隔开）：")
+            pose = raw_input()
+            try:
+                x, y, z = map(float, pose.split())
+            except ValueError:
+                print("输入无效，请输入三个数字")
+                continue
+            r = 0
+            dobot.setPose(x, y, z, r)
+            print('末端位置设置完成')
+        elif choice == "t":
+            theta = float(raw_input("请输入舵机角度(0-1)："))
+            dobot.setTheta(theta)
+            print('舵机角度设置完成')
+        elif choice == "s":
+            dobot.suckupObject()
+            print('吸取快递盒完成')
+        elif choice == "l":
+            dobot.releaseObject()
+            print('释放快递盒完成')
+        elif choice == "a":
+            dobot.clearAlarmsState()
+            print('解除警报完成')
+        elif choice == "r":
+            dobot.setHome()
+            print('复位完成')
+        elif choice == "c":
+            print("请输入抓取下层快递盒的误差（x y）：")
+            error = raw_input()
+            try:
+                error_x, error_y = map(float, error.split())
+            except ValueError:
+                print("输入无效，请输入两个数字")
+                continue
+            dobot.Catch(-10, -10, error_x, error_y)
+            print('抓取下层快递盒完成')
+        elif choice == "c2":
+            print("请输入抓取上层快递盒的误差（x y）：")
+            error = raw_input()
+            try:
+                error_x, error_y = map(float, error.split())
+            except ValueError:
+                print("输入无效，请输入两个数字")
+                continue
+            dobot.Catch2(100, -10, error_x, error_y)
+            print('抓取上层快递盒完成')
+        elif choice == "q":
+            break

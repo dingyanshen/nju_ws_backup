@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+print("初始化摄像头服务端...")
 import cv2
 import zmq
 import easyocr
@@ -66,7 +67,7 @@ def shelf():
 def box():
     img = cv2.imread(message)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    results = reader.readtext(gray)
+    results = reader.readtext(gray, detail=1, paragraph=False, text_threshold=0.35, low_text=0.15, link_threshold=0.1, contrast_ths=0.05, adjust_contrast=0.9, mag_ratio=1.0, add_margin=0.3, slope_ths=0.05, ycenter_ths=0.7, height_ths=0.7, width_ths=0.9)
     text_results = [result[1] for result in results]
     print(text_results)
     text_num = find_province_number(text_results, province_match, province_num)
@@ -115,9 +116,10 @@ if __name__ == "__main__":
     province_match = ['苏', '浙', '安', '徽', '河', '湖', '四', '川', '广', '东', '福', '建']
     province_match_double =['江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
     province_num = [1, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8]
-    print("Server is running...")
+    print("摄像头服务端已启动，等待拍照节点请求...")
     while True:
         message = socket.recv_string()
+        print("处理图片:", message)
         try:
             if message.endswith("qrcode_barcodes_1.jpg") or message.endswith("qrcode_barcodes_2.jpg") or message.endswith("qrcode_barcodes_3.jpg") or message.endswith("qrcode_barcodes_4.jpg"):
                 qrcode_barcodes()

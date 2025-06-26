@@ -113,10 +113,10 @@ class MainController:
 if __name__ == "__main__":
     position_path = "/home/eaibot/nju_ws/src/motion_control/config/position.txt"
     controller = MainController(position_path)
-    controller.calibratePose("start")
+    controller.calibratePose("start_left")
 
     while True:
-        choice = raw_input("请输入选择 s拍货架 b拍邮箱 c抓取 t投递 n导航 p校准位姿 l加载位置 q退出：")
+        choice = raw_input("请输入选择 s拍货架 b拍邮箱 c抓取 t投递 n导航 z自转 p校准位姿 l加载位置 q退出：")
         if choice == "s":
             type = input("请输入类型（1-6）：")
             if type != 1 and type != 2 and type != 3 and type != 4 and type != 5 and type != 6:
@@ -143,6 +143,14 @@ if __name__ == "__main__":
                 print("输入错误，请重新输入")
                 continue
             controller.navigate_posekey(poseKey)
+        elif choice == "z":
+            theta = raw_input("请输入自转角度：")
+            if not theta.isdigit():
+                print("输入错误，请重新输入")
+                continue
+            theta = float(theta)
+            controller.BM.moveRotate(theta)
+
         elif choice == "p":
             poseKey = raw_input("请输入校准位置：")
             if poseKey not in controller.position:
@@ -153,3 +161,8 @@ if __name__ == "__main__":
             controller.position = controller.loadToDict(position_path, mode="pose")
         elif choice == "q":
             break
+
+        #下 下 1
+        #下 上 2
+        #上 左 3
+        #下 左 1
