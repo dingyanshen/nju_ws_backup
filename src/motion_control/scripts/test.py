@@ -9,6 +9,7 @@ from camera.srv import PhotoshelfService, PhotoboxService, PhotoService
 from dobot.srv import GraspService, ThrowService
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from basic_move import BasicMove
+import main_process
 
 class MainController:
     def __init__(self, position_path):
@@ -80,21 +81,18 @@ class MainController:
 
     def test_photo_box(self):
         response = self.photo_box_proxy()
-        print(response)
+        print(response.result)
 
-    def test_grasp(self, type):
-        if type == 1:
-            response = self.photo_proxy(2)
-            catch_type = [0, 0, response.error_x, response.error_y]
-        elif type == 2:
-            response = self.photo_proxy(2)
-            catch_type = [0, 1, response.error_x, response.error_y]
-        elif type == 3:
-            response = self.photo_proxy(1)
-            catch_type = [1, 0, response.error_x, response.error_y]
-        elif type == 4:
-            response = self.photo_proxy(1)
+    def test_grasp(self, type, up):
+        response = self.photo_proxy(type)
+        if up == 1 and type <= 10:
             catch_type = [1, 1, response.error_x, response.error_y]
+        elif up == 1 and type > 10:
+            catch_type = [0, 1, response.error_x, response.error_y]
+        elif up == 0 and type <= 10:
+            catch_type = [1, 0, response.error_x, response.error_y]
+        elif up == 0 and type > 10:
+            catch_type = [0, 0, response.error_x, response.error_y]
         response = self.grasp_proxy(*catch_type)
         print(response)
 
@@ -126,13 +124,19 @@ if __name__ == "__main__":
         elif choice == "b":
             controller.test_photo_box()
         elif choice == "c":
-            type = input("请输入类型（1-4）：")
-            if type != 1 and type != 2 and type != 3 and type != 4:
+            type = input("请输入抓取类型（1-20）：")
+            if type != 1 and type != 2 and type != 3 and type != 4 and type != 5 and type != 6 and type != 7 and type != 8 and type != 9 and type != 10 and \
+               type != 11 and type != 12 and type != 13 and type != 14 and type != 15 and type != 16 and type != 17 and type != 18 and type != 19 and type != 20:
                 print("输入错误，请重新输入")
                 continue
-            controller.test_grasp(type)
+            up = input("请输入抓取高度（0-下 1-上）：")
+            if up != 0 and up != 1:
+                print("输入错误，请重新输入")
+                continue
+            up = int(up)
+            controller.test_grasp(type, up)
         elif choice == "t":
-            type = input("请输入类型（1-4）：")
+            type = input("请输入投递类型（1-4）：")
             if type != 1 and type != 2 and type != 3 and type != 4:
                 print("输入错误，请重新输入")
                 continue

@@ -6,6 +6,131 @@ import easyocr
 import time
 import numpy as np
 import pnp
+from pupil_apriltags import Detector
+
+def detect_apriltags(image_path, target_tags=[7, 17],num=4):
+    image = cv2.imread(image_path)
+    if image is None:
+        raise ValueError(f"无法读取图片: {image_path}")
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # 检测AprilTags
+    detections = detector.detect(gray)
+    tag_positions_x={}
+    tag_positions_y={}
+
+    # 处理检测结果
+    for det in detections:
+        tag_id = det.tag_id
+        if tag_id in target_tags:
+            center =  det.center.astype(int)
+            x, y = center
+            tag_positions_x[tag_id] = x
+            tag_positions_y[tag_id] = y
+
+    if len(tag_positions_x)<2: # 检测到属于目标标签的数量小于2
+        return -1
+    
+    x=(tag_positions_x[target_tags[0]]+tag_positions_x[target_tags[1]])//2
+    y=(3*tag_positions_y[target_tags[0]]+tag_positions_y[target_tags[1]])//4
+    H=(tag_positions_y[target_tags[1]]-tag_positions_y[target_tags[0]])
+    W=int(H*15.5/11.5)
+
+    h,w=image.shape[:2]
+    l=max(0,x-W)
+    r=min(w,x+W)
+    u=max(0,y-H)
+    d=min(h,y+H)
+
+    pic_ul=image[u:y,l:x]
+    pic_ur=image[u:y,x:r]
+    pic_dl=image[y:d,l:x]
+    pic_dr=image[y:d,x:r]
+
+    image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+    path = "/home/eaibot/nju_ws/src/camera/img_shelf/{}_s.jpg".format(image_name)
+    
+    path1 = path + "_dl_1.jpg"
+    cv2.imwrite(path1,pic_dl)
+    path2 = path + "_dr_1.jpg"
+    cv2.imwrite(path2,pic_dr)
+    path3 = path + "_ul_1.jpg"
+    cv2.imwrite(path3,pic_ul)
+    path4 = path + "_ur_1.jpg"
+    cv2.imwrite(path4,pic_ur)
+
+    path1_2 = path + "_dl_2.jpg"
+    cv2.imwrite(path1_2,pic_dl)
+    path2_2 = path + "_dr_2.jpg"
+    cv2.imwrite(path2_2,pic_dr)
+    path3_2 = path + "_ul_2.jpg"
+    cv2.imwrite(path3_2,pic_ul)
+    path4_2 = path + "_ur_2.jpg"
+    cv2.imwrite(path4_2,pic_ur)
+
+    return path
+
+def detect_apriltags_catch(image_path, target_tags=[7, 17],num=4,height=1,location=1):
+    image = cv2.imread(image_path)
+    if image is None:
+        raise ValueError(f"无法读取图片: {image_path}")
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # 检测AprilTags
+    detections = detector.detect(gray)
+    tag_positions_x={}
+    tag_positions_y={}
+    
+    # 处理检测结果
+    for det in detections:
+        tag_id = det.tag_id
+        
+        if tag_id in target_tags:
+           
+            center =  det.center.astype(int)
+            x, y = center
+            tag_positions_x[tag_id] = x
+            tag_positions_y[tag_id] = y
+
+    if len(tag_positions_x)<2: # 检测到属于目标标签的数量小于2
+        return -1
+            
+    x=(tag_positions_x[target_tags[0]]+tag_positions_x[target_tags[1]])//2
+    y=(3*tag_positions_y[target_tags[0]]+tag_positions_y[target_tags[1]])//4
+    H=(tag_positions_y[target_tags[1]]-tag_positions_y[target_tags[0]])
+    W=int(H*15.5/11.5)
+    bg_color = (255, 255, 255)
+
+    h,w=image.shape[:2]
+    l=max(0,x-W)
+    r=min(w,x+W)
+    u=max(0,y-H)
+    d=min(h,y+H)
+
+    pic_ul=np.full((h, w, 3), bg_color, dtype=np.uint8)
+    pic_ul[u:y,l:x]=image[u:y,l:x]
+
+    pic_ur=np.full((h, w, 3), bg_color, dtype=np.uint8)
+    pic_ur[u:y,x:r]=image[u:y,x:r]
+
+    pic_dl=np.full((h, w, 3), bg_color, dtype=np.uint8)
+    pic_dl[y:d,l:x]=image[y:d,l:x]
+
+    pic_dr=np.full((h, w, 3), bg_color, dtype=np.uint8)
+    pic_dr[y:d,x:r]=image[y:d,x:r]
+
+    image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+    path = "/home/eaibot/nju_ws/src/camera/img_catch/{}_c.jpg".format(image_name)
+
+    if height == 1 and location == 1:
+        cv2.imwrite(path,pic_ul)
+    elif height == 1 and location == 2:
+        cv2.imwrite(path,pic_ur)
+    elif height == 2 and location == 1:
+        cv2.imwrite(path,pic_dl)
+    elif height == 2 and location == 2:
+        cv2.imwrite(path,pic_dr)
+    return path
 
 def calculate(frame, points):
     points = points[0]
@@ -74,6 +199,66 @@ def box():
     socket.send(str(text_num).encode())
 
 def catch():
+    # mode 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+    mode = int(message.split('_')[-2])
+    if mode == 1 or mode == 2 or mode == 3 or mode == 4 or mode == 5:
+        height = 1 # UP
+        location = 1 # LEFT
+    elif mode == 6 or mode == 7 or mode == 8 or mode == 9 or mode == 10:
+        height = 1 # UP
+        location = 2 # RIGHT
+    elif mode == 11 or mode == 12 or mode == 13 or mode == 14 or mode == 15:
+        height = 2 # DOWN
+        location = 1 # LEFT
+    elif mode == 16 or mode == 17 or mode == 18 or mode == 19 or mode == 20:
+        height = 2 # DOWN
+        location = 2 # RIGHT
+    if mode > 10:
+        mode1 = mode - 10
+        mode2 = mode
+    elif mode <= 10:
+        mode1 = mode
+        mode2 = mode + 10
+    path = detect_apriltags_catch(message, target_tags=[mode1, mode2], height=height, location=location, num=4)
+    if path == -1:  # 检测到属于目标标签的数量小于2
+        socket.send(b"0")
+    else:
+        img = cv2.imread(path)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        barcodes, points = model.detectAndDecode(gray)
+        if len(points) > 1:
+            error_x = error_y = [0]
+        if len(points) == 0:
+            error_x = error_y = [0]
+        else:
+            error_x, error_y = pnp.pnp(points)
+        path = "/home/eaibot/nju_ws/src/camera/config/error.txt"
+        with open(path, 'w') as f:
+            f.write(f"{error_x[0]} {error_y[0]}")
+        socket.send(str(path).encode())
+
+def sdo():
+    mode = int(message.split('_')[-2])
+    if mode == 1:
+        _mode = [1, 11]
+    elif mode == 2:
+        _mode = [3, 13]
+    elif mode == 3:
+        _mode = [5, 15]
+    elif mode == 4:
+        _mode = [6, 16]
+    elif mode == 5:
+        _mode = [8, 18]
+    elif mode == 6:
+        _mode = [10, 20]
+    path = detect_apriltags(message, target_tags=_mode, num=4)
+    if path == -1:
+        # 检测到属于目标标签的数量小于2
+        socket.send(b"0")
+    else:
+        socket.send(str(path).encode())
+
+def c_hard():
     img = cv2.imread(message)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     barcodes, points = model.detectAndDecode(gray)
@@ -111,19 +296,20 @@ if __name__ == "__main__":
     decaf = '/home/eaibot/nju_ws/src/camera/config/detect.caffemodel'
     srpro = '/home/eaibot/nju_ws/src/camera/config/sr.prototxt'
     srcaf = '/home/eaibot/nju_ws/src/camera/config/sr.caffemodel'
+    detector = Detector(families='tag36h11', nthreads=1, quad_decimate=1.0, quad_sigma=0.0, refine_edges=1, decode_sharpening=0.25, debug=0)
     model = cv2.wechat_qrcode_WeChatQRCode(depro, decaf, srpro, srcaf)
     reader = easyocr.Reader(['ch_sim', 'en'])
     province_match = ['苏', '浙', '安', '徽', '河', '湖', '四', '川', '广', '东', '福', '建']
     province_match_double =['江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
     province_num = [1, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8]
-    print("摄像头服务端已启动，等待拍照节点请求...")
+    print("摄像头服务端已启动，等待处理图片...")
     while True:
         message = socket.recv_string()
         print("处理图片:", message)
         try:
-            if message.endswith("qrcode_barcodes_1.jpg") or message.endswith("qrcode_barcodes_2.jpg") or message.endswith("qrcode_barcodes_3.jpg") or message.endswith("qrcode_barcodes_4.jpg"):
+            if message.endswith("1.jpg"):
                 qrcode_barcodes()
-            elif message.endswith("qrcode_points_1.jpg") or message.endswith("qrcode_points_2.jpg") or message.endswith("qrcode_points_3.jpg") or message.endswith("qrcode_points_4.jpg"):
+            elif message.endswith("2.jpg"):
                 qrcode_points()
             elif message.endswith("box.jpg"):
                 box()
@@ -131,6 +317,10 @@ if __name__ == "__main__":
                 shelf()
             elif message.endswith("catch.jpg"):
                 catch()
+            elif message.endswith("sdo.jpg"):
+                sdo()
+            elif message.endswith("c.jpg"):
+                c_hard()
             else:
                 print("Invalid message received:", message)
                 socket.send(b"0")

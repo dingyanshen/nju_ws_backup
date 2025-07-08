@@ -15,18 +15,17 @@ class BasicMove:
         self.recordData = recordData
         self.file_path = "/home/eaibot/nju_ws/src/motion_control/data/"
         self.rateControl = rospy.Rate(500)
-        self.PID_forward = PID(-3, -0.00, -0.00, setpoint=0.0)
-        self.PID_forward.output_limits = (-0.3, 0.3)
-        self.toleranceForward = 0.01
+        self.PID_forward = PID(-5, -0.00, -0.00, setpoint=0.0)#原来-3
+        self.PID_forward.output_limits = (-0.5, 0.5)#原来-0.3，0.3
+        self.toleranceForward = 0.05#原来0.01
         self.PID_cross = PID(1, -0.0, -0.0, setpoint=0.0)
         self.PID_cross.output_limits = (-0.1, 0.1)
-        self.PID_rotate = PID(-5, -0.0018, -0.0008, setpoint=0.0)
-        self.PID_rotate.output_limits = (-0.5, 0.5)
-        self.toleranceRotate = 0.01
+        self.PID_rotate = PID(-10, -0.0018, -0.0008, setpoint=0.0)#原来p为-5，liu
+        self.PID_rotate.output_limits = (-1, 1)#原来为(-0.5, 0.5)，liu
+        self.toleranceRotate = 0.08 #原来是0.01 liu
         rospy.Subscriber("/robot_pose", Pose, self._robot_pose_CB, queue_size=10)
         rospy.wait_for_message("/robot_pose", Pose)
         self.pub_velCmd = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-
     def _robot_pose_CB(self, pose):
         self.poseCur = pose
 
@@ -129,7 +128,7 @@ class BasicMove:
                 time = rospy.Time.now() - timeStart
                 times.append(str(time))
                 errors.append(str(error))
-            angular_z = self.PID_rotate(error)
+            angular_z = self.PID_rotate(error)#角速度，原来为1*self.PID_rotate(error)
             self._pubVelCmd(angular_z=angular_z)
             radiansCur = self._getRadians(self.poseCur)
             error = self._getRotateError(radiansTarget, radiansCur, mode)

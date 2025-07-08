@@ -196,7 +196,7 @@ class Dobot():
         self.setPose(250,0,height+30,0)
         rospy.sleep(0.1)
         self.setTheta(1)
-        self.setPose(0,-270*dir,50,0)
+        self.setPose(0,-320*dir,50,0)
         rospy.sleep(0.1)
         self.releaseObject()
         rospy.sleep(0.4)
@@ -263,13 +263,15 @@ class Dobot():
         #  0 143 -8
         #  0 143 25
         rospy.sleep(0.1)
-        self.setPose(250,0,height1/3.5-5,0)
+        self.setPose(280,0,height1/3.5-5,0)
         #  250 0 -8
         #  250 0 25
+        self.setPose(280,0,height2,0)
+        self.setTheta(0)
+        rospy.sleep(0.6)
         self.setPose(250,0,height2,0)
         #  250 0 -10
         #  250 0 -10
-        self.setTheta(0)
         rospy.sleep(0.6)
         self.releaseObject()
         rospy.sleep(0.1)
@@ -332,10 +334,10 @@ class Dobot():
             self.Catch(100, -40, error_x, error_y) #货架上层邮件抓取到下方
             print('货架上层邮件抓取到下方')
         elif shelf_z == 0 and pos_z == 1:
-            self.Catch(-10, -10, error_x, error_y) #货架下层邮件抓取到上方
+            self.Catch(-15, -10, error_x, error_y) #货架下层邮件抓取到上方
             print('货架下层邮件抓取到上方')
         elif shelf_z == 0 and pos_z == 0:
-            self.Catch(-10, -40, error_x, error_y) #货架下层邮件抓取到下方
+            self.Catch(-15, -40, error_x, error_y) #货架下层邮件抓取到下方
             print('货架下层邮件抓取到下方')
         return True
 

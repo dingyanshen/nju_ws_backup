@@ -190,7 +190,7 @@ class Dobot():
         self.setPose(250,0,height+30,0)
         rospy.sleep(0.1)
         self.setTheta(1)
-        self.setPose(0,-270*dir,50,0)
+        self.setPose(0,-320*dir,50,0)
         rospy.sleep(0.1)
         self.releaseObject()
         rospy.sleep(0.4)
@@ -255,17 +255,123 @@ class Dobot():
     
     def CatchBox(self, shelf_z, pos_z, error_x, error_y): #抓取快递盒
         if shelf_z == 1 and pos_z == 1:
-            self.Catch(100, -10, error_x, error_y) #货架上层邮件抓取到上方
+            self.Catch2(100, -10, error_x, error_y+3) #货架上层邮件抓取到上方
             print('货架上层邮件抓取到上方')
         elif shelf_z == 1 and pos_z == 0:
-            self.Catch(100, -40, error_x, error_y) #货架上层邮件抓取到下方
+            self.Catch2(100, -40, error_x, error_y+3) #货架上层邮件抓取到下方
             print('货架上层邮件抓取到下方')
         elif shelf_z == 0 and pos_z == 1:
-            self.Catch(-10, -10, error_x, error_y) #货架下层邮件抓取到上方
+            self.Catch1(-15, -10, error_x, error_y) #货架下层邮件抓取到上方
             print('货架下层邮件抓取到上方')
         elif shelf_z == 0 and pos_z == 0:
-            self.Catch(-10, -40, error_x, error_y) #货架下层邮件抓取到下方
+            self.Catch1(-15, -40, error_x, error_y) #货架下层邮件抓取到下方
             print('货架下层邮件抓取到下方')
+        return True
+    
+    def Catch1(self, height1, height2, error_x, error_y):
+        MAXX = 9
+        MAXY = 10
+        if error_x > MAXX:
+            error_x = MAXX
+        if error_x < -MAXX:
+            error_x = -MAXX
+        if error_y > MAXY:
+            error_y = MAXY
+        if error_y < -MAXY:
+            error_y = -MAXY
+        error_x = 10 * error_x
+        error_y = 10 * error_y
+        calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
+        calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
+        calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
+
+        ###100 -10
+        self.setTheta(0)
+        rospy.sleep(0.1)
+        self.setPose(0+error_x,305+error_y,height1+18,0)
+        #  0 305 8
+        #  0 305 118
+        rospy.sleep(0.1)
+        self.setTheta(calculate_PWM)
+        rospy.sleep(0.8)
+        self.setPose(0+error_x,305+error_y,height1,0)
+        #  0 305 -10
+        #  0 305 100
+        self.suckupObject()
+        rospy.sleep(0.3)
+        self.setPose(0+error_x,305+error_y,height1+18,0)
+        #  0 305 8
+        #  0 305 118
+        rospy.sleep(0.1)
+        self.setPose(0+error_x,max(200+error_y,140),height1+18,0)
+        #  0 200 8
+        #  0 200 118
+        rospy.sleep(0.1)
+        self.setPose(0+error_x,135,height1/3.5-5,0)
+        #  0 143 -8
+        #  0 143 25
+        rospy.sleep(0.1)
+        self.setPose(280,0,height1/3.5-5,0)
+        #  250 0 -8
+        #  250 0 25
+        self.setPose(280,0,height2,0)
+        self.setTheta(0)
+        rospy.sleep(0.6)
+        self.setPose(250,0,height2,0)
+        #  250 0 -10
+        #  250 0 -10
+        rospy.sleep(0.6)
+        self.releaseObject()
+        rospy.sleep(0.1)
+        return True
+
+    def Catch2(self, height1, height2, error_x, error_y):
+        MAXX = 6
+        MAXY = 10
+        if error_x > MAXX:
+            error_x = MAXX
+        if error_x < -MAXX:
+            error_x = -MAXX
+        if error_y > MAXY:
+            error_y = MAXY
+        if error_y < -MAXY:
+            error_y = -MAXY
+        error_x = 10 * error_x
+        error_y = 10 * error_y
+        calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
+        calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
+        calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
+
+        ###100 -10
+        self.setTheta(0)
+        rospy.sleep(0.1)
+        self.setPose(0+error_x,min(max(250+error_y,195),295),118,0)
+        #  0 305 8
+        #  0 305 118
+        rospy.sleep(0.1)
+        self.setTheta(calculate_PWM)
+        rospy.sleep(0.8)
+        self.setPose(0+error_x,min(max(250+error_y,195),295),100,0)
+        #  0 305 -10
+        #  0 305 100
+        self.suckupObject()
+        rospy.sleep(0.3)
+        self.setPose(0+error_x,min(max(250+error_y,195),295),118,0)
+        #  0 305 8
+        #  0 305 118
+        rospy.sleep(0.1)
+        for i in range(10):
+            self.setPose(6*i+error_x,195,118,0)
+            self.setTheta(calculate_PWM-0.04*i)
+        self.setTheta(0.3)
+        rospy.sleep(0.1)
+        self.setPose(250,0,118,0)
+        self.setTheta(0)
+        self.setPose(250,0,height2,0)
+        self.setTheta(0)
+        rospy.sleep(0.6)
+        self.releaseObject()
+        rospy.sleep(0.1)
         return True
 
 if __name__ == '__main__':

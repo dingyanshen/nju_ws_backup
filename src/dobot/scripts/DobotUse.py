@@ -24,7 +24,7 @@ class DobotServiceNode:
     def handle_grasp(self, req):
         rospy.loginfo("Grasping mail...")
         try:
-            print("邮件位置误差：", req.error_x, req.error_y)
+            print("error_x: {}, error_y: {}, pos_z: {}, shelf_z: {}".format(req.error_x, req.error_y, req.pos_z, req.shelf_z))
             self.dobot.CatchBox(req.shelf_z, req.pos_z, req.error_x, req.error_y)
             return GraspServiceResponse(True)
         except Exception as e:
