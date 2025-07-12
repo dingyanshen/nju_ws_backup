@@ -15,14 +15,14 @@ class BasicMove:
         self.recordData = recordData
         self.file_path = "/home/eaibot/nju_ws/src/motion_control/data/"
         self.rateControl = rospy.Rate(500)
-        self.PID_forward = PID(-5, -0.00, -0.00, setpoint=0.0)#原来-3
-        self.PID_forward.output_limits = (-0.5, 0.5)#原来-0.3，0.3
-        self.toleranceForward = 0.05#原来0.01
+        self.PID_forward = PID(-5, -0.00, -0.00, setpoint=0.0) # 原来 -3
+        self.PID_forward.output_limits = (-0.5, 0.5) # 原来 -0.3 0.3
+        self.toleranceForward = 0.05 # 原来 0.01
         self.PID_cross = PID(1, -0.0, -0.0, setpoint=0.0)
         self.PID_cross.output_limits = (-0.1, 0.1)
-        self.PID_rotate = PID(-10, -0.0018, -0.0008, setpoint=0.0)#原来p为-5，liu
-        self.PID_rotate.output_limits = (-1, 1)#原来为(-0.5, 0.5)，liu
-        self.toleranceRotate = 0.08 #原来是0.01 liu
+        self.PID_rotate = PID(-10, -0.0018, -0.0008, setpoint=0.0) # 原来 -5
+        self.PID_rotate.output_limits = (-1, 1) # 原来 -0.5 0.5
+        self.toleranceRotate = 0.08 # 原来 0.01
         rospy.Subscriber("/robot_pose", Pose, self._robot_pose_CB, queue_size=10)
         rospy.wait_for_message("/robot_pose", Pose)
         self.pub_velCmd = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
@@ -73,7 +73,7 @@ class BasicMove:
             timeStart = rospy.Time.now()
             times, errors = [], []
         if self.detailInfo == True:
-            print("move forward " + str(targetDist) + "m with " + str(mode) + " mode")
+            print("直线运动" + str(targetDist) + "米")
         self.poseInit = self.poseCur
         error_f = self._getForwardErrorF(self.poseInit, targetDist, mode)
         error_c = self._getForwardErrorC(mode=mode)
@@ -118,9 +118,7 @@ class BasicMove:
             timeStart = rospy.Time.now()
             times, errors = [], []
         if self.detailInfo == True:
-            print(
-                "move rotate to " + str(targetDegree) + "° with " + str(mode) + " mode"
-            )
+            print("自转运动" + str(targetDegree) + "度")
         radiansCur = self._getRadians(self.poseCur)
         error = self._getRotateError(radiansTarget, radiansCur, mode)
         while abs(error) > self.toleranceRotate and not rospy.is_shutdown():
@@ -140,19 +138,10 @@ class BasicMove:
     def moveArc(self, R, degree, direction, linear_x=0.2): # 弧线运动
         R, degree, linear_x = float(R), float(degree), float(linear_x)
         if direction not in ("LEFT", "RIGHT"):
-            print("direction must be LEFT or RIGHT")
+            print("方向设置错误")
             return
         if self.detailInfo == True:
-            print(
-                "move arc with radius: "
-                + str(R)
-                + "m, degree: "
-                + str(degree)
-                + "°, direction: "
-                + str(direction)
-                + ", linear_x: "
-                + str(linear_x)
-            )
+            print("弧线运动：半径" + str(R) + "米 角度: " + str(degree) + "度 方向: " + str(direction) + " 线速度: " + str(linear_x))
         theta = radians(degree)
         time = theta * R / abs(linear_x)
         direction = 1 if direction == "LEFT" else -1

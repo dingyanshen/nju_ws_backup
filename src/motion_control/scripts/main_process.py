@@ -16,18 +16,12 @@ class MainController:
         self.BM = BasicMove(detailInfo=True)
         self.position = self.loadToDict(position_path, mode="pose")
         self.move_base_AS = actionlib.SimpleActionClient("move_base", MoveBaseAction)
-        print("Connecting to move_base action server...")
         self.move_base_AS.wait_for_server(rospy.Duration(60))
         self.pub_initialpose = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=20)
-        print("Waiting for photo_shelf_service...")
         rospy.wait_for_service('photo_shelf_service')
-        print("Waiting for photo_box_service...")
         rospy.wait_for_service('photo_box_service')
-        print("Waiting for photo_service...")
         rospy.wait_for_service('photo_service')
-        print("Waiting for dobot_grasp_service...")
         rospy.wait_for_service('dobot_grasp_service')
-        print("Waiting for dobot_throw_service...")
         rospy.wait_for_service('dobot_throw_service')
         self.photo_shelf_proxy = rospy.ServiceProxy('photo_shelf_service', PhotoshelfService)
         self.photo_box_proxy = rospy.ServiceProxy('photo_box_service', PhotoboxService)
@@ -48,7 +42,6 @@ class MainController:
         self.CURRENT_LOCATION = "INIT" # INIT 初始化 poseKey 坐标
 
     def debug_print(self): # 调试函数
-        print("Debug Information—————————————————————————————————————————")
         print("Current State: " + str(self.CURRENT_STATE))
         print("Current Location: " + str(self.CURRENT_LOCATION))
         print("Mail Table: " + str(self.mail_table))
@@ -59,10 +52,8 @@ class MainController:
         print("Left Provinces: " + str(self.L_provinces))
         print("Right Provinces: " + str(self.R_provinces))
         print("Platform State: " + str(self.platform_state))
-        print("——————————————————————————————————————————————————————————")
 
     def loadToDict(self, file_path, mode): # 导入相关参数
-        print("Loading " + str(mode) + "...")
         dictionary = dict()
         file = open(file_path, "r")
         for line in file:
@@ -73,7 +64,7 @@ class MainController:
                 pose = Pose(Point(px, py, 0.0), Quaternion(0.0, 0.0, qz, qw))
                 dictionary[key] = pose
         file.close()
-        print("Load " + str(mode) + " successfully!")
+        print("成功导入坐标参数！")
         return dictionary
     
     def welcome(self): # 欢迎界面
@@ -88,6 +79,8 @@ class MainController:
         ]
         for line in welcome_msg:
             print(line)
+        # 按下 ENTER 开始跑车
+        raw_input("按下 ENTER 开始跑车...")
 
     def end(self): # 结束界面
         end_msg = [
@@ -103,7 +96,6 @@ class MainController:
             print(line)
 
     def calibratePose(self, poseKey): # 校准位姿
-        print("Calibrating pose " + str(poseKey) + "...")
         originalPose = PoseWithCovarianceStamped()
         originalPose.header.frame_id = "map"
         originalPose.header.stamp = rospy.Time.now()
@@ -115,7 +107,7 @@ class MainController:
             self.pub_initialpose.publish(originalPose)
             rospy.sleep(0.1)
         rospy.sleep(0.5)
-        print("Calibrate pose " + str(poseKey) + " successfully!")
+        print("成功校准位姿为 " + str(poseKey) + "!")
 
     def navigate_posekey(self, poseKey): # 导航到指定位置外层
         if self.CURRENT_STATE == "INIT" or self.CURRENT_STATE == "PHOTO":
@@ -275,71 +267,70 @@ class MainController:
 
     def takeboxPic_RU(self): # 邮箱文字识别[右上]
         self.navigate_posekey("ARU2")
-        print("ARU2 is arrived.")
+        print("到达右上-左拍照点位!")
         self.process_box("RU2")
 
         self.navigate_posekey("ARU1")
-        print("ARU1 is arrived.")
+        print("到达右上-右拍照点位!")
         self.process_box("RU1")
         self.BM.moveForward(-0.3)
 
     def takeboxPic_RD(self): # 邮箱文字识别[右下]
         self.navigate_posekey("ARD2")
-        print("ARD2 is arrived.")
+        print("到达右下-下拍照点位!")
         self.process_box("RD2")
 
         self.navigate_posekey("ARD1")
-        print("ARD1 is arrived.")
+        print("到达右下-上拍照点位!")
         self.process_box("RD1")
         
     def takeboxPic_LU(self): # 邮箱文字识别[左上]
         self.navigate_posekey("ALU1")
-        print("ALU1 is arrived.")
+        print("到达左上-左拍照点位!")
         self.process_box("LU1")
 
         self.navigate_posekey("ALU2")
-        print("ALU2 is arrived.")
+        print("到达左上-右拍照点位!")
         self.process_box("LU2")
 
     def takeboxPic_LD(self): # 邮箱文字识别[左下]
         self.navigate_posekey("ALD1")
-        print("ALD1 is arrived.")
+        print("到达左下-上拍照点位!")
         self.process_box("LD1")
 
         self.navigate_posekey("ALD2")
-        print("ALD2 is arrived.")
+        print("到达左下-下拍照点位!")
         self.process_box("LD2")
                 
     def takeshelfPic_R(self): # 货架拍照[右侧]
         self.navigate_posekey("RP3")
-        print("RP3 is arrived.")
+        print("到达右侧上拍照RP3点位!")
         self.process_shelf(4)
         
         self.navigate_posekey("RP2")
-        print("RP2 is arrived.")
+        print("到达右侧中拍照RP2点位!")
         self.process_shelf(5)
         
         self.navigate_posekey("RP1")
-        print("RP1 is arrived.")
+        print("到达右侧下拍照RP1点位!")
         self.process_shelf(6)
 
     def takeshelfPic_L(self): # 货架拍照[左侧]
         self.navigate_posekey("LP3")
-        print("LP3 is arrived.")
+        print("到达左侧下拍照LP3点位!")
         self.process_shelf(1)
 
         self.navigate_posekey("LP2")
-        print("LP2 is arrived.")
+        print("到达左侧中拍照LP2点位!")
         self.process_shelf(2)
         
         self.navigate_posekey("LP1")
-        print("LP1 is arrived.")
+        print("到达左侧上拍照LP1点位!")
         self.process_shelf(3)
 
     def process_shelf(self, type): # 货架拍照服务
         try:
             response = self.photo_shelf_proxy(type)
-            print(response)
             if type == 1 or type == 2:
                 for i in range(4):
                     self.mail_table.append({
@@ -409,12 +400,11 @@ class MainController:
                     'positions_x': response.positions_x[3],
                 })
         except rospy.ServiceException as e:
-            rospy.logerr("Photo service call failed: {e}")
+            print("货架拍照服务调用失败!")
 
     def process_box(self, box_id): # 邮箱拍照服务
         try:
             response = self.photo_box_proxy()
-            print(response.result)
             self.mail_box.append({
                     'box_id': box_id,
                     'result': response.result
@@ -425,7 +415,7 @@ class MainController:
             elif box_id == "RU1" or box_id == "RU2" or box_id == "RD1" or box_id == "RD2":
                 self.R_provinces.append(response.result)
         except rospy.ServiceException as e:
-            rospy.logerr("Photo service call failed: {e}")
+            print("邮箱拍照服务调用失败!")
     
     def grasp_mail(self, mail): # 抓取邮件
         try:
@@ -451,15 +441,15 @@ class MainController:
                 response = self.grasp_proxy(*catch_type)
                 self.platform_state = 2
             else:
-                rospy.logwarn("邮件位置不正确")
+                print("抓取邮件失败！")
                 return False
             if response.success:
                 return True
             else:
-                rospy.logwarn("抓取邮件失败")
+                print("抓取邮件失败！")
                 return False
         except rospy.ServiceException as e:
-            rospy.logerr("抓取服务调用失败: {e}")
+            print("抓取服务调用失败！")
             return False
         
     def deliver_mails(self, mails): # 运送邮件
@@ -468,16 +458,14 @@ class MainController:
             for mail in mails:
                 found = False
                 for box in self.mail_box:
-                    print(box)
-                    print(mail)
                     if box['result'] == mail['results']:
-                        print("运送邮件" + str(mail['results']) + "到邮箱" + str(box['box_id']))
+                        print("省份编号" + str(mail['results']) + "的邮件正在运送到邮箱" + str(box['box_id']))
                         self.navigate_posekey(box['box_id'])
                         found = True
                         break
                 if not found:
-                    print("未找到对应的邮箱，无法运送邮件" + str(mail['results']))
-                    print("运送邮件" + str(mail['results']) + "到无效邮箱U")
+                    print("未找到对应的邮箱，无法运送省份编号" + str(mail['results']) + "的邮件")
+                    print("省份编号" + str(mail['results']) + "的邮件将被丢弃到无效邮箱")
                     self.navigate_posekey("U")
                 if self.platform_state == 2: # 上层
                     throw_type = [1, 0]
@@ -488,11 +476,11 @@ class MainController:
                     response = self.throw_proxy(*throw_type)
                     self.platform_state = 0
                 if not response.success:
-                    rospy.logwarn("运送邮件失败")
+                    print("运送邮件失败！")
                     return False
             return True
         except rospy.ServiceException as e:
-            rospy.logerr("运送服务调用失败: {e}")
+            print("运送服务调用失败！")
             return False
         
     def select_nearest_province(self, mail_table, priority_provinces):  # 对mail_table按照priority_provinces重新排序
@@ -632,8 +620,6 @@ class MainController:
         self.takeboxPic_RD() # 邮箱拍照[右下]
 
         self.navigate_posekey("start")
-
-        # self.AutoSet()
 
         self.CURRENT_STATE = "RUN"
 

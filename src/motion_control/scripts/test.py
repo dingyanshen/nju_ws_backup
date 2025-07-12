@@ -9,7 +9,6 @@ from camera.srv import PhotoshelfService, PhotoboxService, PhotoService
 from dobot.srv import GraspService, ThrowService
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from basic_move import BasicMove
-import main_process
 
 class MainController:
     def __init__(self, position_path):
@@ -17,18 +16,12 @@ class MainController:
         self.BM = BasicMove(detailInfo=True)
         self.position = self.loadToDict(position_path, mode="pose")
         self.move_base_AS = actionlib.SimpleActionClient("move_base", MoveBaseAction)
-        print("Connecting to move_base action server...")
         self.move_base_AS.wait_for_server(rospy.Duration(60))
         self.pub_initialpose = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=20)
-        print("Waiting for photo_shelf_service...")
         rospy.wait_for_service('photo_shelf_service')
-        print("Waiting for photo_box_service...")
         rospy.wait_for_service('photo_box_service')
-        print("Waiting for photo_service...")
         rospy.wait_for_service('photo_service')
-        print("Waiting for dobot_grasp_service...")
         rospy.wait_for_service('dobot_grasp_service')
-        print("Waiting for dobot_throw_service...")
         rospy.wait_for_service('dobot_throw_service')
         self.photo_shelf_proxy = rospy.ServiceProxy('photo_shelf_service', PhotoshelfService)
         self.photo_box_proxy = rospy.ServiceProxy('photo_box_service', PhotoboxService)
@@ -37,7 +30,6 @@ class MainController:
         self.throw_proxy = rospy.ServiceProxy('dobot_throw_service', ThrowService)
 
     def loadToDict(self, file_path, mode): # 导入相关参数
-        print("Loading " + str(mode) + "...")
         dictionary = dict()
         file = open(file_path, "r")
         for line in file:
@@ -48,11 +40,10 @@ class MainController:
                 pose = Pose(Point(px, py, 0.0), Quaternion(0.0, 0.0, qz, qw))
                 dictionary[key] = pose
         file.close()
-        print("Load " + str(mode) + " successfully!")
+        print("成功导入坐标参数！")
         return dictionary
 
     def calibratePose(self, poseKey): # 校准位姿
-        print("Calibrating pose " + str(poseKey) + "...")
         originalPose = PoseWithCovarianceStamped()
         originalPose.header.frame_id = "map"
         originalPose.header.stamp = rospy.Time.now()
@@ -64,7 +55,7 @@ class MainController:
             self.pub_initialpose.publish(originalPose)
             rospy.sleep(0.1)
         rospy.sleep(0.5)
-        print("Calibrate pose " + str(poseKey) + " successfully!")
+        print("成功校准位姿为 " + str(poseKey) + "!")
 
     def navigate_posekey(self, poseKey): # 导航到指定位置
         goal = MoveBaseGoal()
@@ -154,7 +145,6 @@ if __name__ == "__main__":
                 continue
             theta = float(theta)
             controller.BM.moveRotate(theta)
-
         elif choice == "p":
             poseKey = raw_input("请输入校准位置：")
             if poseKey not in controller.position:
@@ -165,8 +155,3 @@ if __name__ == "__main__":
             controller.position = controller.loadToDict(position_path, mode="pose")
         elif choice == "q":
             break
-
-        #下 下 1
-        #下 上 2
-        #上 左 3
-        #下 左 1

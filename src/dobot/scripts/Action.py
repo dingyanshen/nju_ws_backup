@@ -153,8 +153,7 @@ class Dobot():
             x = max(x, -140)
         R = math.sqrt(x * x + y * y)
         if R >= 320:
-            print('[WARN] Out of safe distance!')
-            rospy.logwarn('Out of safe distance!')
+            print('机械臂触发安全距离限制！')
             x = x * 320 / R
             y = y * 320 / R
         return x, y
@@ -178,202 +177,161 @@ class Dobot():
     def setTheta(self, theta): #设置末端舵机角度(百分比)
         self.setIOPWM((91-25)*theta+25)
         return True
+      
+    def CatchUP(self, height, error_x, error_y):
+        # 货架上层高度
+        HEIGHT_UP = 100
+        # 误差参数的校正和安全限定
+        error_y = error_y + 3
+        MAXX = 6, MAXY = 10
+        if error_x > MAXX: error_x = MAXX
+        if error_x < -MAXX: error_x = -MAXX
+        if error_y > MAXY: error_y = MAXY
+        if error_y < -MAXY: error_y = -MAXY
+        error_x = 10 * error_x
+        error_y = 10 * error_y
+        # 计算误差舵机PWM值
+        calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
+        calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
+        calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
+        # 舵机内缩 达到高度
+        self.setTheta(0)
+        rospy.sleep(0.1)
+        self.setPose(0+error_x,min(max(250+error_y,195),295),HEIGHT_UP+18,0)
+        rospy.sleep(0.1)
+        # 舵机外伸
+        self.setTheta(calculate_PWM)
+        rospy.sleep(0.8)
+        # 下压 吸取
+        self.setPose(0+error_x,min(max(250+error_y,195),295),HEIGHT_UP,0)
+        self.suckupObject()
+        rospy.sleep(0.3)
+        # 抬起
+        self.setPose(0+error_x,min(max(250+error_y,195),295),HEIGHT_UP+18,0)
+        rospy.sleep(0.1)
+        # 抖动旋转避让
+        for i in range(10):
+            self.setPose(6*i+error_x,195,HEIGHT_UP+18,0)
+            self.setTheta(calculate_PWM-0.04*i)
+        self.setTheta(0.3)
+        rospy.sleep(0.1)
+        # 转到平台上方 舵机内缩 达到高度
+        self.setPose(250,0,118,0)
+        self.setTheta(0)
+        self.setPose(250,0,height,0)
+        rospy.sleep(0.6)
+        # 释放
+        self.releaseObject()
+        rospy.sleep(0.1)
+        return True
+  
+    def CatchDOWN(self, height, error_x, error_y):
+        # 货架下层高度
+        HEIGHT_DOWN = -15
+        # 误差参数的校正和安全限定
+        MAXX = 9, MAXY = 10
+        if error_x > MAXX: error_x = MAXX
+        if error_x < -MAXX: error_x = -MAXX
+        if error_y > MAXY: error_y = MAXY
+        if error_y < -MAXY: error_y = -MAXY
+        error_x = 10 * error_x
+        error_y = 10 * error_y
+        # 计算误差舵机PWM值
+        calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
+        calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
+        calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
+        # 舵机内缩 达到高度
+        self.setTheta(0)
+        rospy.sleep(0.1)
+        self.setPose(0+error_x,305+error_y,HEIGHT_DOWN+18,0)
+        rospy.sleep(0.1)
+        # 舵机外伸
+        self.setTheta(calculate_PWM)
+        rospy.sleep(0.8)
+        # 下压 吸取
+        self.setPose(0+error_x,305+error_y,HEIGHT_DOWN,0)
+        self.suckupObject()
+        rospy.sleep(0.3)
+        # 抬起
+        self.setPose(0+error_x,305+error_y,HEIGHT_DOWN+18,0)
+        rospy.sleep(0.1)
+        # 机械臂内缩避让
+        self.setPose(0+error_x,max(200+error_y,140),HEIGHT_DOWN+18,0)
+        rospy.sleep(0.1)
+        self.setPose(0+error_x,135,-10,0)
+        rospy.sleep(0.1)
+        # 转到平台上方 舵机内缩 达到高度
+        self.setPose(280,0,-10,0)
+        self.setPose(280,0,height,0)
+        self.setTheta(0)
+        rospy.sleep(0.6)
+        self.setPose(250,0,height,0)
+        rospy.sleep(0.6)
+        # 释放
+        self.releaseObject()
+        rospy.sleep(0.1)
+        return True
+
+    def CatchBox(self, shelf_z, pos_z, error_x, error_y): #抓取快递盒外层
+        # 根据货架位置shelf_z(1-上层 0-下层) 平台位置pos_z(1-上方 0-下方) error_x error_y
+        UPPER_PLATFORM_HEIGHT = -10, LOWER_PLATFORM_HEIGHT = -40 # 平台上下层高度参数
+        if shelf_z == 1 and pos_z == 1:
+            self.CatchUP(UPPER_PLATFORM_HEIGHT, error_x, error_y) #货架上层邮件抓取到上方
+            print('货架上层邮件抓取到上方')
+        elif shelf_z == 1 and pos_z == 0:
+            self.CatchUP(LOWER_PLATFORM_HEIGHT, error_x, error_y) #货架上层邮件抓取到下方
+            print('货架上层邮件抓取到下方')
+        elif shelf_z == 0 and pos_z == 1:
+            self.CatchDOWN(UPPER_PLATFORM_HEIGHT, error_x, error_y) #货架下层邮件抓取到上方
+            print('货架下层邮件抓取到上方')
+        elif shelf_z == 0 and pos_z == 0:
+            self.CatchDOWN(LOWER_PLATFORM_HEIGHT, error_x, error_y) #货架下层邮件抓取到下方
+            print('货架下层邮件抓取到下方')
+        return True
     
     def Throw(self, dir, height): #投掷快递盒
+        # 舵机内缩 达到高度
         self.setTheta(0)
         rospy.sleep(0.1)
         self.setPose(250,0,height+30,0)
         rospy.sleep(0.1)
+        # 下压 吸取
         self.setPose(250,0,height,0)
         self.suckupObject()
         rospy.sleep(0.3)
+        # 抬起
         self.setPose(250,0,height+30,0)
         rospy.sleep(0.1)
+        # 舵机外伸 转向邮箱
         self.setTheta(1)
         self.setPose(0,-320*dir,50,0)
         rospy.sleep(0.1)
+        # 释放
         self.releaseObject()
         rospy.sleep(0.4)
+        # 舵机内缩 回到初始位置
         self.setTheta(0)
         rospy.sleep(0.1)
         self.setPose(250,0,0,0)
         return True
     
-    def ThrowBox(self, pos_z, mailbox_pos): #投掷快递盒
+    def ThrowBox(self, pos_z, mailbox_pos): #投掷快递盒外层
+        # 根据平台位置pos_z(1-上方 0-下方) 邮箱位置mailbox_pos(1-右侧 0-左侧)
+        UPPER_HEIGHT = -30, LOWER_HEIGHT = -60 # 平台上下层高度参数
         if mailbox_pos == 1 and pos_z == 1:
-            self.Throw(1, -30) #上方邮件投掷到右侧邮箱
+            self.Throw(1, UPPER_HEIGHT) #上方邮件投掷到右侧邮箱
             print('上方邮件投掷到右侧邮箱')
         elif mailbox_pos == 1 and pos_z == 0:
-            self.Throw(1, -60) #下方邮件投掷到右侧邮箱
+            self.Throw(1, LOWER_HEIGHT) #下方邮件投掷到右侧邮箱
             print('下方邮件投掷到右侧邮箱')
         elif mailbox_pos == 0 and pos_z == 1:
-            self.Throw(-1, -30) #上方邮件投掷到左侧邮箱
+            self.Throw(-1, UPPER_HEIGHT) #上方邮件投掷到左侧邮箱
             print('上方邮件投掷到左侧邮箱')
         elif mailbox_pos == 0 and pos_z == 0:
-            self.Throw(-1, -60) #下方邮件投掷到左侧邮箱
+            self.Throw(-1, LOWER_HEIGHT) #下方邮件投掷到左侧邮箱
             print('下方邮件投掷到左侧邮箱')
         return True
     
-    def Catch(self, height1, height2, error_x, error_y): #抓取快递盒(带误差参数)
-        MAXX = 9
-        MAXY = 10
-        if error_x > MAXX:
-            error_x = MAXX
-        if error_x < -MAXX:
-            error_x = -MAXX
-        if error_y > MAXY:
-            error_y = MAXY
-        if error_y < -MAXY:
-            error_y = -MAXY
-        error_x = 10 * error_x
-        error_y = 10 * error_y
-        calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
-        calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
-        calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
-        self.setTheta(0)
-        rospy.sleep(0.1)
-        self.setPose(0+error_x,305,height1+18,0)
-        rospy.sleep(0.1)
-        self.setTheta(calculate_PWM)
-        rospy.sleep(0.8)
-        self.setPose(0+error_x,305,height1,0)
-        self.suckupObject()
-        rospy.sleep(0.3)
-        self.setPose(0+error_x,305,height1+18,0)
-        rospy.sleep(0.1)
-        self.setPose(0+error_x,200,height1+18,0)
-        rospy.sleep(0.1)
-        self.setPose(0+error_x,143,height1/3.5-5,0)
-        rospy.sleep(0.1)
-        self.setPose(250,0,height1/3.5-5,0)
-        self.setPose(250,0,height2,0)
-        self.setTheta(0)
-        rospy.sleep(0.6)
-        self.releaseObject()
-        rospy.sleep(0.1)
-        return True
-    
-    def CatchBox(self, shelf_z, pos_z, error_x, error_y): #抓取快递盒
-        if shelf_z == 1 and pos_z == 1:
-            self.Catch2(100, -10, error_x, error_y+3) #货架上层邮件抓取到上方
-            print('货架上层邮件抓取到上方')
-        elif shelf_z == 1 and pos_z == 0:
-            self.Catch2(100, -40, error_x, error_y+3) #货架上层邮件抓取到下方
-            print('货架上层邮件抓取到下方')
-        elif shelf_z == 0 and pos_z == 1:
-            self.Catch1(-15, -10, error_x, error_y) #货架下层邮件抓取到上方
-            print('货架下层邮件抓取到上方')
-        elif shelf_z == 0 and pos_z == 0:
-            self.Catch1(-15, -40, error_x, error_y) #货架下层邮件抓取到下方
-            print('货架下层邮件抓取到下方')
-        return True
-    
-    def Catch1(self, height1, height2, error_x, error_y):
-        MAXX = 9
-        MAXY = 10
-        if error_x > MAXX:
-            error_x = MAXX
-        if error_x < -MAXX:
-            error_x = -MAXX
-        if error_y > MAXY:
-            error_y = MAXY
-        if error_y < -MAXY:
-            error_y = -MAXY
-        error_x = 10 * error_x
-        error_y = 10 * error_y
-        calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
-        calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
-        calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
-
-        ###100 -10
-        self.setTheta(0)
-        rospy.sleep(0.1)
-        self.setPose(0+error_x,305+error_y,height1+18,0)
-        #  0 305 8
-        #  0 305 118
-        rospy.sleep(0.1)
-        self.setTheta(calculate_PWM)
-        rospy.sleep(0.8)
-        self.setPose(0+error_x,305+error_y,height1,0)
-        #  0 305 -10
-        #  0 305 100
-        self.suckupObject()
-        rospy.sleep(0.3)
-        self.setPose(0+error_x,305+error_y,height1+18,0)
-        #  0 305 8
-        #  0 305 118
-        rospy.sleep(0.1)
-        self.setPose(0+error_x,max(200+error_y,140),height1+18,0)
-        #  0 200 8
-        #  0 200 118
-        rospy.sleep(0.1)
-        self.setPose(0+error_x,135,height1/3.5-5,0)
-        #  0 143 -8
-        #  0 143 25
-        rospy.sleep(0.1)
-        self.setPose(280,0,height1/3.5-5,0)
-        #  250 0 -8
-        #  250 0 25
-        self.setPose(280,0,height2,0)
-        self.setTheta(0)
-        rospy.sleep(0.6)
-        self.setPose(250,0,height2,0)
-        #  250 0 -10
-        #  250 0 -10
-        rospy.sleep(0.6)
-        self.releaseObject()
-        rospy.sleep(0.1)
-        return True
-
-    def Catch2(self, height1, height2, error_x, error_y):
-        MAXX = 6
-        MAXY = 10
-        if error_x > MAXX:
-            error_x = MAXX
-        if error_x < -MAXX:
-            error_x = -MAXX
-        if error_y > MAXY:
-            error_y = MAXY
-        if error_y < -MAXY:
-            error_y = -MAXY
-        error_x = 10 * error_x
-        error_y = 10 * error_y
-        calculate_PWM1 = (math.degrees(math.atan2(300+error_y, 0+error_x))+90)/180
-        calculate_PWM2 = (math.degrees(math.atan2(210+error_y, 0+error_x))+90)/180
-        calculate_PWM = (calculate_PWM1 + calculate_PWM2) / 2
-
-        ###100 -10
-        self.setTheta(0)
-        rospy.sleep(0.1)
-        self.setPose(0+error_x,min(max(250+error_y,195),295),118,0)
-        #  0 305 8
-        #  0 305 118
-        rospy.sleep(0.1)
-        self.setTheta(calculate_PWM)
-        rospy.sleep(0.8)
-        self.setPose(0+error_x,min(max(250+error_y,195),295),100,0)
-        #  0 305 -10
-        #  0 305 100
-        self.suckupObject()
-        rospy.sleep(0.3)
-        self.setPose(0+error_x,min(max(250+error_y,195),295),118,0)
-        #  0 305 8
-        #  0 305 118
-        rospy.sleep(0.1)
-        for i in range(10):
-            self.setPose(6*i+error_x,195,118,0)
-            self.setTheta(calculate_PWM-0.04*i)
-        self.setTheta(0.3)
-        rospy.sleep(0.1)
-        self.setPose(250,0,118,0)
-        self.setTheta(0)
-        self.setPose(250,0,height2,0)
-        self.setTheta(0)
-        rospy.sleep(0.6)
-        self.releaseObject()
-        rospy.sleep(0.1)
-        return True
-
 if __name__ == '__main__':
     dobot = Dobot()
     # dobot.setHome()
@@ -384,15 +342,3 @@ if __name__ == '__main__':
     dobot.setPose(250,0,0,0)
     rospy.sleep(0.1)
     dobot.setTheta(0)
-
-    xerror = 0
-    yerror = 0
-    while True:
-        dobot.CatchBox(0, 0, xerror, yerror)
-        rospy.sleep(0.5)
-        dobot.CatchBox(0, 0, -xerror, yerror)
-        rospy.sleep(0.5)
-        xerror += 1
-
-    # dobot.ThrowBox(1, 0) #把上层邮件投掷到左侧邮箱
-    # dobot.ThrowBox(0, 0) #把下层邮件投掷到左侧邮箱

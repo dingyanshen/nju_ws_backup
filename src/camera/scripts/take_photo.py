@@ -8,6 +8,7 @@ from camera.srv import PhotoboxService, PhotoboxServiceResponse, PhotoboxService
 import cv2
 import zmq
 
+# 初始化zmq 与server.py建立连接
 context = zmq.Context()
 socket = context.socket(zmq.REQ)
 socket.connect("tcp://192.168.31.200:5555")
@@ -20,11 +21,12 @@ class PhotoServiceNode:
         self.service_box = rospy.Service('photo_box_service', PhotoboxService, self.handle_box_photo)
         self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
-            rospy.logerr("Camera initialization failed!")
-            rospy.signal_shutdown("Camera initialization failed!")
+            print("摄像头初始化失败！")
 
     def camera_catch(self, req):
-        # type 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+        # 此函数用于处理main_process.py中的抓取时拍照请求
+        # req.type表示抓取邮件位置编号 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+        # 返回值为误差error_x error_y
         mode = req.type
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
@@ -32,12 +34,14 @@ class PhotoServiceNode:
             self.cap.grab()
         ret, frame = self.cap.read()
         if not ret:
-            rospy.logwarn("read camera failed")
+            print("无法读取摄像头！")
             return PhotoServiceResponse(0, 0)
         image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
         image_path = "/home/eaibot/nju_ws/src/camera/img/{}_{}_catch.jpg".format(image_name, mode)
         cv2.imwrite(image_path, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+
         socket.send_string(image_path)
+        # [catch]与server.py建立连接：发送抓取时拍照的图片路径，等待切割失败或error路径
         response = socket.recv()
 
         if response == b"0": # 硬切割
@@ -53,26 +57,29 @@ class PhotoServiceNode:
             path = "/home/eaibot/nju_ws/src/camera/img_catch/{}_c.jpg".format(image_name)
             cv2.imwrite(path, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
             socket.send_string(path)
+            # [c]与server.py建立连接：发送硬切割后的图片路径，等待error路径
             response = socket.recv()
             
         with open(response, 'r') as f:
             data = f.read().strip().split()
         if len(data) != 2:
-            rospy.logwarn("Error reading error.txt")
+            print("无法解析error.txt！")
             return PhotoServiceResponse(0, 0)
         try:
             error_x = float(data[0])
             error_y = float(data[1])
         except ValueError:
-            rospy.logwarn("Error parsing error.txt")
+            print("error.txt中的数据格式错误！")
             return PhotoServiceResponse(0, 0)
         return PhotoServiceResponse(error_x, error_y)
         
     def handle_shelf_photo(self, req):
-        # type 1 2 3 4 5 6
-        # int32[] results 0 1 2 3 4 5 6 7 8
-        # int32[] positions_z #1 2
-        # int32[] positions_x #1 2 3 4 5 6 7 8 9 10
+        # 此函数用于处理main_process.py中的货架拍照请求
+        # req.type表示拍照序号 1 2 3 4 5 6
+        # 返回值为三个数组
+        # results数组表示邮件省份 0 1 2 3 4 5 6 7 8
+        # positions_z数组表示邮件高度 1为上层 2为下层
+        # positions_x数组为表示邮件列 1 2 3 4 5 6 7 8 9 10
         mode = req.type
         if req.type == 1 or req.type == 2 or req.type == 3:
             left_top = req.type * 2 - 1
@@ -84,12 +91,14 @@ class PhotoServiceNode:
             self.cap.grab()
         ret, frame = self.cap.read()
         if not ret:
-            rospy.logwarn("read camera failed")
+            print("无法读取摄像头！")
             return PhotoshelfServiceResponse([], [], [])
         image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
         image_path_sdo = "/home/eaibot/nju_ws/src/camera/img/{}_{}_sdo.jpg".format(image_name, mode)
         cv2.imwrite(image_path_sdo, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+
         socket.send_string(image_path_sdo)
+        # [sdo]与server.py建立连接：发送货架拍照的图片路径，等待切割失败或切割成功的路径
         response_sdo = socket.recv()
 
         if response_sdo == b"0":
@@ -126,6 +135,7 @@ class PhotoServiceNode:
             pathdl_2 = path + "_dl_2.jpg"
             pathdr_2 = path + "_dr_2.jpg"
         
+        # [1]与server.py建立连接：发送切割后的四个图片路径，等待二维码识别结果
         socket.send_string(pathul)
         response_qrcode_barcodes_1 = socket.recv()
         socket.send_string(pathur)
@@ -134,7 +144,9 @@ class PhotoServiceNode:
         response_qrcode_barcodes_3 = socket.recv()
         socket.send_string(pathdr)
         response_qrcode_barcodes_4 = socket.recv()
-
+        
+        # [2]与server.py建立连接：发送切割后的四个图片路径，等待cropped路径
+        # [cropped]与server.py建立连接：发送cropped路径，等待文字识别结果
         socket.send_string(pathul_2)
         response_qrcode_points_1 = socket.recv()
         socket.send_string(response_qrcode_points_1)
@@ -182,13 +194,15 @@ class PhotoServiceNode:
                 response_4 = 0
 
         num_province = ['无效', '江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
-        print(num_province[int(response_1)])
-        print(num_province[int(response_2)])
-        print(num_province[int(response_3)])
-        print(num_province[int(response_4)])
+        print("左上角省份：", num_province[int(response_1)])
+        print("右上角省份：", num_province[int(response_2)])
+        print("左下角省份：", num_province[int(response_3)])
+        print("右下角省份：", num_province[int(response_4)])
         return PhotoshelfServiceResponse([int(response_1), int(response_2), int(response_3), int(response_4)], [1, 1, 2, 2], [left_top, left_top + 1, left_top, left_top + 1])
     
     def handle_box_photo(self, req):
+        # 此函数用于处理main_process.py中的快递箱拍照请求
+        # 返回值为快递箱省份 0 1 2 3 4 5 6 7 8
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
         for _ in range(10):
@@ -196,15 +210,16 @@ class PhotoServiceNode:
         ret, frame = self.cap.read()
         frame = frame[160:240, 0:320]
         if not ret:
-            rospy.logwarn("read camera failed")
+            print("无法读取摄像头！")
             return PhotoboxServiceResponse(0)
         image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
         image_path = "/home/eaibot/nju_ws/src/camera/img/{}_box.jpg".format(image_name)
         cv2.imwrite(image_path, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0]) 
         socket.send_string(image_path)
+        # [box]与server.py建立连接：发送快递箱拍照的图片路径，等待文字识别结果
         response = socket.recv()
         num_province = ['无效', '江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
-        print(num_province[int(response)])
+        print("邮箱省份：", num_province[int(response)])
         return PhotoboxServiceResponse(int(response))
     
 if __name__ == "__main__":

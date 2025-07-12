@@ -15,7 +15,6 @@ from dobot.srv import SetIODO
 from dobot.srv import SetHOMEParams
 from dobot.srv import GetIOPWM, GetIOPWMRequest
 from dobot.srv import SetPTPCoordinateParams
-import math
 
 class Dobot():
     def __init__(self):

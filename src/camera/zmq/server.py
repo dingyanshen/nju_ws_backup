@@ -8,18 +8,17 @@ import numpy as np
 import pnp
 from pupil_apriltags import Detector
 
-def detect_apriltags(image_path, target_tags=[7, 17],num=4):
+def detect_apriltags(image_path, target_tags=[7, 17]):
+    # 货架拍照：检测图片特定AprilTags 返回-1或四张切割图片路径
     image = cv2.imread(image_path)
     if image is None:
         raise ValueError(f"无法读取图片: {image_path}")
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # 检测AprilTags
     detections = detector.detect(gray)
     tag_positions_x={}
     tag_positions_y={}
 
-    # 处理检测结果
     for det in detections:
         tag_id = det.tag_id
         if tag_id in target_tags:
@@ -70,23 +69,20 @@ def detect_apriltags(image_path, target_tags=[7, 17],num=4):
 
     return path
 
-def detect_apriltags_catch(image_path, target_tags=[7, 17],num=4,height=1,location=1):
+def detect_apriltags_catch(image_path, target_tags=[7, 17], height=1, location=1):
+    # 抓取时拍照：检测图片特定AprilTags 返回-1或填充后的图片路径
     image = cv2.imread(image_path)
     if image is None:
         raise ValueError(f"无法读取图片: {image_path}")
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
-    # 检测AprilTags
+
     detections = detector.detect(gray)
     tag_positions_x={}
     tag_positions_y={}
-    
-    # 处理检测结果
+
     for det in detections:
         tag_id = det.tag_id
-        
         if tag_id in target_tags:
-           
             center =  det.center.astype(int)
             x, y = center
             tag_positions_x[tag_id] = x
@@ -133,6 +129,7 @@ def detect_apriltags_catch(image_path, target_tags=[7, 17],num=4,height=1,locati
     return path
 
 def calculate(frame, points):
+    # 根据图片及二维码角点坐标预测地址位置并切割 返回切割图片地址
     points = points[0]
     min_x = np.min(points[:, 0])
     max_x = np.max(points[:, 0])
@@ -164,6 +161,7 @@ def calculate(frame, points):
     return image_cropped_path
 
 def qrcode_barcodes():
+    # [1]接收切割后的四个图片路径，返回二维码识别结果
     img = cv2.imread(message)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     barcodes, points = model.detectAndDecode(gray)
@@ -171,6 +169,7 @@ def qrcode_barcodes():
     socket.send(str(text_num).encode())
 
 def qrcode_points():
+    # [2]接收切割后的四个图片路径，返回cropped图片路径
     img = cv2.imread(message)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     barcodes, points = model.detectAndDecode(gray)
@@ -181,24 +180,27 @@ def qrcode_points():
         socket.send(b"0")
 
 def shelf():
+    # [cropped]接收cropped路径，返回文字识别结果
     img = cv2.imread(message)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     results = reader.readtext(gray)
     text_results = [result[1] for result in results]
-    print(text_results)
-    text_num = find_province_number_double(text_results, province_match_double)
+    print("识别结果:", text_results)
+    text_num = find_province_number_double(text_results, province_match_double, province_num_double)
     socket.send(str(text_num).encode())
 
 def box():
+    #[box]接收快递箱拍照的图片路径，返回文字识别结果
     img = cv2.imread(message)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     results = reader.readtext(gray, detail=1, paragraph=False, text_threshold=0.35, low_text=0.15, link_threshold=0.1, contrast_ths=0.05, adjust_contrast=0.9, mag_ratio=1.0, add_margin=0.3, slope_ths=0.05, ycenter_ths=0.7, height_ths=0.7, width_ths=0.9)
     text_results = [result[1] for result in results]
-    print(text_results)
+    print("识别结果:", text_results)
     text_num = find_province_number(text_results, province_match, province_num)
     socket.send(str(text_num).encode())
 
 def catch():
+    # [catch]接收抓取时拍照的图片路径，返回切割失败或error路径
     # mode 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
     mode = int(message.split('_')[-2])
     if mode == 1 or mode == 2 or mode == 3 or mode == 4 or mode == 5:
@@ -219,7 +221,7 @@ def catch():
     elif mode <= 10:
         mode1 = mode
         mode2 = mode + 10
-    path = detect_apriltags_catch(message, target_tags=[mode1, mode2], height=height, location=location, num=4)
+    path = detect_apriltags_catch(message, target_tags=[mode1, mode2], height=height, location=location)
     if path == -1:  # 检测到属于目标标签的数量小于2
         socket.send(b"0")
     else:
@@ -238,6 +240,7 @@ def catch():
         socket.send(str(path).encode())
 
 def sdo():
+    # [sdo]接收货架拍照的图片路径，返回切割失败或切割成功的路径
     mode = int(message.split('_')[-2])
     if mode == 1:
         _mode = [1, 11]
@@ -251,7 +254,7 @@ def sdo():
         _mode = [8, 18]
     elif mode == 6:
         _mode = [10, 20]
-    path = detect_apriltags(message, target_tags=_mode, num=4)
+    path = detect_apriltags(message, target_tags=_mode)
     if path == -1:
         # 检测到属于目标标签的数量小于2
         socket.send(b"0")
@@ -259,6 +262,7 @@ def sdo():
         socket.send(str(path).encode())
 
 def c_hard():
+    # [c]接收硬切割后的图片路径，返回error路径
     img = cv2.imread(message)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     barcodes, points = model.detectAndDecode(gray)
@@ -274,6 +278,7 @@ def c_hard():
     socket.send(str(path).encode())
 
 def find_province_number(results, match, num):
+    # 邮箱OCR识别单字匹配
     for item in results:
         for char in item:
             if char in match:
@@ -281,17 +286,21 @@ def find_province_number(results, match, num):
                 return num[index]
     return 0
 
-def find_province_number_double(results, match_double):
+def find_province_number_double(results, match_double, num_double):
+    # 货架OCR识别双字匹配
     for item in results:
         for province in match_double:
             if province in item:
-                return match_double.index(province) + 1
+                index = match_double.index(province)
+                return num_double[index]
     return 0
 
 if __name__ == "__main__":
+    # 初始化zmq 与拍照节点建立连接
     context = zmq.Context()
     socket = context.socket(zmq.REP)
     socket.bind("tcp://*:5555")
+    # 初始化检测模型
     depro = '/home/eaibot/nju_ws/src/camera/config/detect.prototxt'
     decaf = '/home/eaibot/nju_ws/src/camera/config/detect.caffemodel'
     srpro = '/home/eaibot/nju_ws/src/camera/config/sr.prototxt'
@@ -299,11 +308,42 @@ if __name__ == "__main__":
     detector = Detector(families='tag36h11', nthreads=1, quad_decimate=1.0, quad_sigma=0.0, refine_edges=1, decode_sharpening=0.25, debug=0)
     model = cv2.wechat_qrcode_WeChatQRCode(depro, decaf, srpro, srcaf)
     reader = easyocr.Reader(['ch_sim', 'en'])
-    province_match = ['苏', '浙', '安', '徽', '河', '湖', '四', '川', '广', '东', '福', '建']
-    province_match_double =['江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
-    province_num = [1, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8]
+    # 初始化省份兼容性匹配列表
+    province_match = ['苏', '茆',
+                      '浙', '断', '祈',
+                      '安', '女', '妄', '徽', '徵', '傲', '僦',
+                      '河',
+                      '湖',
+                      '四', '川',
+                      '广', '东',
+                      '福', '梅', '橱', '建', '处']
+    province_num = [1, 1,
+                    2, 2, 2,
+                    3, 3, 3, 3, 3, 3, 3,
+                    4,
+                    5,
+                    6, 6,
+                    7, 7,
+                    8, 8, 8, 8, 8]
+    province_match_double = ['江苏', '讧苏',
+                             '浙江', '浙讧', '断江', '断讧', '祈江', '祈讧',
+                             '安徽', '安徵', '安傲', '妄徽', '妄徵', '妄傲', '安僦', '妄僦', '女徽', '女徵', '女傲', '女僦',
+                             '河南',
+                             '湖南',
+                             '四川',
+                             '广东',
+                             '福建', '福处', '橱建', '橱处', '梅建', '梅处']
+    province_num_double = [1, 1,
+                           2, 2, 2, 2, 2, 2,
+                           3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+                           4,
+                           5,
+                           6,
+                           7,
+                           8, 8, 8, 8, 8, 8]
     print("摄像头服务端已启动，等待处理图片...")
     while True:
+        # 接收拍照节点发送的图片路径
         message = socket.recv_string()
         print("处理图片:", message)
         try:
@@ -322,7 +362,7 @@ if __name__ == "__main__":
             elif message.endswith("c.jpg"):
                 c_hard()
             else:
-                print("Invalid message received:", message)
+                print("图片路径存在问题：", message)
                 socket.send(b"0")
         except Exception as e:
             socket.send(b"0")

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-qrcode_len = 2.35
+qrcode_len = 2.35 # 邮件表面二维码边长
 standard_translation_vector = np.array([[-3.57393347], [-1.02586684], [25.00277962]], dtype=np.float32)
 camera_intrinsic = {
     "mtx": np.array([[539.4118538, 0.00000000e+00, 321.1254354],
@@ -12,6 +12,7 @@ camera_intrinsic = {
 }
 
 def pnp(img_points):
+    # 根据二维码角点坐标计算error_x和error_y
     img_points = img_points[0]
     temp_point = img_points[2]
     img_points[2] = img_points[3]

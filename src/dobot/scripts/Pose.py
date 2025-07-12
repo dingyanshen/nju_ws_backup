@@ -15,7 +15,6 @@ from dobot.srv import SetIODO
 from dobot.srv import SetHOMEParams
 from dobot.srv import GetIOPWM, GetIOPWMRequest
 from dobot.srv import SetPTPCoordinateParams
-import math
 
 class Dobot():
     def __init__(self):
@@ -101,7 +100,6 @@ class Dobot():
 
 if __name__ == '__main__':
     dobot = Dobot()
-
     while True:
         pose = dobot.getPose()
         print('x: %.2f, y: %.2f, z: %.2f, r: %.2f' % (pose[0], pose[1], pose[2], pose[3]))

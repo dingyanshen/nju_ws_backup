@@ -22,22 +22,22 @@ class DobotServiceNode:
         self.dobot.setTheta(0)
 
     def handle_grasp(self, req):
-        rospy.loginfo("Grasping mail...")
+        # 抓取服务
         try:
-            print("error_x: {}, error_y: {}, pos_z: {}, shelf_z: {}".format(req.error_x, req.error_y, req.pos_z, req.shelf_z))
+            print("误差参数：", req.error_x, req.error_y)
             self.dobot.CatchBox(req.shelf_z, req.pos_z, req.error_x, req.error_y)
             return GraspServiceResponse(True)
         except Exception as e:
-            rospy.logerr("Grasping failed: {e}")
+            print("抓取失败！")
             return GraspServiceResponse(False)
         
     def handle_throw(self, req):
-        rospy.loginfo("Throwing mail...")
+        # 投递服务
         try:
             self.dobot.ThrowBox(req.pos_z, req.mailbox_pos)
             return ThrowServiceResponse(True)
         except Exception as e:
-            rospy.logerr("Throwing failed: {e}")
+            print("投递失败！")
             return ThrowServiceResponse(False)
 
 if __name__ == "__main__":
