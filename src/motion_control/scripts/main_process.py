@@ -2,6 +2,8 @@
 # -*- coding:utf-8 -*-
 
 import rospy
+import json
+import random
 import actionlib
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion
 from actionlib_msgs.msg import *
@@ -10,11 +12,62 @@ from dobot.srv import GraspService, ThrowService
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from basic_move import BasicMove
 
+class NavigationRule:
+    @staticmethod
+    def _match_rule(current, target, nav_rules): # 匹配当前位置到目标位置的导航逻辑
+        if current in nav_rules:
+            current_rules = nav_rules[current]
+            for target_group, rule in current_rules.items():
+                if any(NavigationRule._is_in_group(target, g) for g in target_group.split(',')):
+                    return rule
+            if '*' in current_rules:
+                return current_rules['*']
+        return nav_rules.get('default', {})
+    
+    @staticmethod
+    def _is_in_group(target, group): # 判断目标所属组
+        # 处理通配符
+        if group == '*':
+            return True
+        # 处理单元素组
+        return target == group
+
+    @staticmethod
+    def _execute_pre(pre_actions, BM): # 执行预处理动作
+        for action in pre_actions:
+            if action[0] == 'rotate':
+                BM.moveRotate(action[1])
+            elif action[0] == 'forward':
+                BM.moveForward(action[1])
+
+    @staticmethod
+    def _navigate_posekey_waypoint(poseKey, move_base_AS, position): # 导航到中间点的低精度模式
+        # 获取原来的参数
+        original_xy_tolerance = rospy.get_param("/move_base/TebLocalPlannerROS/xy_goal_tolerance")
+        original_yaw_tolerance = rospy.get_param("/move_base/TebLocalPlannerROS/yaw_goal_tolerance")
+        
+        try:
+            rospy.set_param("/move_base/TebLocalPlannerROS/xy_goal_tolerance", 0.05)
+            rospy.set_param("/move_base/TebLocalPlannerROS/yaw_goal_tolerance", 0.05)
+
+            goal = MoveBaseGoal()
+            goal.target_pose.header.frame_id = "map"
+            goal.target_pose.header.stamp = rospy.Time.now()
+            goal.target_pose.pose = position[poseKey]
+            move_base_AS.send_goal(goal)
+            while not move_base_AS.wait_for_result():
+                pass
+                
+        finally:
+            rospy.set_param("/move_base/TebLocalPlannerROS/xy_goal_tolerance", original_xy_tolerance)
+            rospy.set_param("/move_base/TebLocalPlannerROS/yaw_goal_tolerance", original_yaw_tolerance)
+
 class MainController:
-    def __init__(self,position_path):
+    def __init__(self, position_path, navigate_path):
         rospy.init_node('main_controller')
         self.BM = BasicMove(detailInfo=True)
         self.position = self.loadToDict(position_path, mode="pose")
+        self.nav_rules = self.loadToDict(navigate_path, mode="nav")
         self.move_base_AS = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         self.move_base_AS.wait_for_server(rospy.Duration(60))
         self.pub_initialpose = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=20)
@@ -38,10 +91,14 @@ class MainController:
         self.R_provinces = [] # 右侧省份
         self.platform_state = 0 # 平台状态
 
+        self.expected_provinces = set(range(1, 9))  # 预期省份编号为1 2 3 4 5 6 7 8
+        self.failed_boxes = []  # 识别失败的箱子编号
+        self.success_provinces = set()  # 识别成功的省份编号
+
         self.CURRENT_STATE = "INIT" # INIT 初始化 PHOTO 拍照 RUN 运行
         self.CURRENT_LOCATION = "INIT" # INIT 初始化 poseKey 坐标
 
-    def debug_print(self): # 调试函数
+    def debug_print(self): # 调试函数打印状态信息
         print("Current State: " + str(self.CURRENT_STATE))
         print("Current Location: " + str(self.CURRENT_LOCATION))
         print("Mail Table: " + str(self.mail_table))
@@ -53,19 +110,95 @@ class MainController:
         print("Right Provinces: " + str(self.R_provinces))
         print("Platform State: " + str(self.platform_state))
 
+    def AutoSet(self): # 模拟拍照阶段 随机邮箱和邮件设置
+        self.mail_box.append({'box_id': "LU1", 'result': 1})
+        self.mail_box.append({'box_id': "LU2", 'result': 2})
+        self.mail_box.append({'box_id': "LD1", 'result': 3})
+        self.mail_box.append({'box_id': "LD2", 'result': 4})
+        self.mail_box.append({'box_id': "RU1", 'result': 5})
+        self.mail_box.append({'box_id': "RU2", 'result': 6})
+        self.mail_box.append({'box_id': "RD1", 'result': 7})
+        self.mail_box.append({'box_id': "RD2", 'result': 8})
+        
+        self.priority_provinces.append(1)
+        self.priority_provinces.append(2)
+        self.priority_provinces.append(3)
+        self.priority_provinces.append(4)
+        self.priority_provinces.append(5)
+        self.priority_provinces.append(6)
+        self.priority_provinces.append(7)
+        self.priority_provinces.append(8)
+
+        self.L_provinces.append(1)
+        self.L_provinces.append(2)
+        self.L_provinces.append(3)
+        self.L_provinces.append(4)
+        self.R_provinces.append(5)
+        self.R_provinces.append(6)
+        self.R_provinces.append(7)
+        self.R_provinces.append(8)
+        
+        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 1,})
+        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 2,})
+        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 3,})
+        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 4,})
+        self.mail_table.append({'results': 1,'positions_z': 1,'positions_x': 5,})
+        self.mail_table.append({'results': 1,'positions_z': 1,'positions_x': 6,})
+        self.mail_table.append({'results': 2,'positions_z': 1,'positions_x': 7,})
+        self.mail_table.append({'results': 2,'positions_z': 1,'positions_x': 8,})
+        self.mail_table.append({'results': 3,'positions_z': 1,'positions_x': 9,})
+        self.mail_table.append({'results': 3,'positions_z': 1,'positions_x': 10,})
+
+        self.mail_table.append({'results': 4,'positions_z': 2,'positions_x': 1,})
+        self.mail_table.append({'results': 4,'positions_z': 2,'positions_x': 2,})
+        self.mail_table.append({'results': 5,'positions_z': 2,'positions_x': 3,})
+        self.mail_table.append({'results': 5,'positions_z': 2,'positions_x': 4,})
+        self.mail_table.append({'results': 6,'positions_z': 2,'positions_x': 5,})
+        self.mail_table.append({'results': 6,'positions_z': 2,'positions_x': 6,})
+        self.mail_table.append({'results': 7,'positions_z': 2,'positions_x': 7,})
+        self.mail_table.append({'results': 7,'positions_z': 2,'positions_x': 8,})
+        self.mail_table.append({'results': 8,'positions_z': 2,'positions_x': 9,})
+        self.mail_table.append({'results': 8,'positions_z': 2,'positions_x': 10,})
+
+        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 1,})
+        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 2,})
+        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 3,})
+        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 4,})
+        self.mail_table_L.append({'results': 1,'positions_z': 1,'positions_x': 5,})
+        self.mail_table_R.append({'results': 1,'positions_z': 1,'positions_x': 6,})
+        self.mail_table_R.append({'results': 2,'positions_z': 1,'positions_x': 7,})
+        self.mail_table_R.append({'results': 2,'positions_z': 1,'positions_x': 8,})
+        self.mail_table_R.append({'results': 3,'positions_z': 1,'positions_x': 9,})
+        self.mail_table_R.append({'results': 3,'positions_z': 1,'positions_x': 10,})
+
+        self.mail_table_L.append({'results': 4,'positions_z': 2,'positions_x': 1,})
+        self.mail_table_L.append({'results': 4,'positions_z': 2,'positions_x': 2,})
+        self.mail_table_L.append({'results': 5,'positions_z': 2,'positions_x': 3,})
+        self.mail_table_L.append({'results': 5,'positions_z': 2,'positions_x': 4,})
+        self.mail_table_L.append({'results': 6,'positions_z': 2,'positions_x': 5,})
+        self.mail_table_R.append({'results': 6,'positions_z': 2,'positions_x': 6,})
+        self.mail_table_R.append({'results': 7,'positions_z': 2,'positions_x': 7,})
+        self.mail_table_R.append({'results': 7,'positions_z': 2,'positions_x': 8,})
+        self.mail_table_R.append({'results': 8,'positions_z': 2,'positions_x': 9,})
+        self.mail_table_R.append({'results': 8,'positions_z': 2,'positions_x': 10,})
+
     def loadToDict(self, file_path, mode): # 导入相关参数
-        dictionary = dict()
-        file = open(file_path, "r")
-        for line in file:
-            data = line.strip().split()
-            if mode == "pose" and len(data) == 5:
-                key, px, py, qz, qw = data
-                px, py, qz, qw = float(px), float(py), float(qz), float(qw)
-                pose = Pose(Point(px, py, 0.0), Quaternion(0.0, 0.0, qz, qw))
-                dictionary[key] = pose
-        file.close()
-        print("成功导入坐标参数！")
-        return dictionary
+        if mode == "pose":
+            dictionary = dict()
+            file = open(file_path, "r")
+            for line in file:
+                data = line.strip().split()
+                if len(data) == 5:
+                    key, px, py, qz, qw = data
+                    px, py, qz, qw = float(px), float(py), float(qz), float(qw)
+                    pose = Pose(Point(px, py, 0.0), Quaternion(0.0, 0.0, qz, qw))
+                    dictionary[key] = pose
+            file.close()
+            print("成功导入坐标参数！")
+            return dictionary
+        elif mode == "nav":
+            with open(file_path, 'r') as f:
+                return json.load(f)
     
     def welcome(self): # 欢迎界面
         welcome_msg = [
@@ -109,152 +242,27 @@ class MainController:
         rospy.sleep(0.5)
         print("成功校准位姿为 " + str(poseKey) + "!")
 
-    def navigate_posekey(self, poseKey): # 导航到指定位置外层
-        if self.CURRENT_STATE == "INIT" or self.CURRENT_STATE == "PHOTO":
+    def navigate_posekey(self, poseKey): # 导航到指定位置函数外层
+        # 初始化或拍照状态下的逻辑
+        if self.CURRENT_STATE in ["INIT", "PHOTO"]:
             self._navigate_posekey(poseKey)
-        elif self.CURRENT_STATE == "RUN":
+            self.CURRENT_LOCATION = poseKey
+            return
+        
+        # 运行状态下的逻辑
+        if self.CURRENT_STATE == "RUN":
+            # 当前位置已经是目标位置
             if self.CURRENT_LOCATION == poseKey:
-                pass
-
-            elif self.CURRENT_LOCATION == "start": # 临时增加的特殊情况
-                self._navigate_posekey(poseKey)
-
-            elif self.CURRENT_LOCATION == "ARD1": # 右下拍照结束的特殊情况
-                if poseKey == "CL1" or poseKey == "CL2" or poseKey == "CL3" or poseKey == "CL4" or poseKey == "CL5":
-                    self._navigate_posekey("start_left")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "CL6" or poseKey == "CL7" or poseKey == "CL8" or poseKey == "CL9" or poseKey == "CL10":
-                    self._navigate_posekey(poseKey)
-
-            elif self.CURRENT_LOCATION == "CL1" or self.CURRENT_LOCATION == "CL2" or self.CURRENT_LOCATION == "CL3" or self.CURRENT_LOCATION == "CL4" or self.CURRENT_LOCATION == "CL5":
-                # self.BM.moveRotate(135)
-                # self.BM.moveForward(-0.2)
-                if poseKey == "CL1" or poseKey == "CL2" or poseKey == "CL3" or poseKey == "CL4" or poseKey == "CL5":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "CL6" or poseKey == "CL7" or poseKey == "CL8" or poseKey == "CL9" or poseKey == "CL10":
-                    self._navigate_posekey("start")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LU1" or poseKey == "LU2" or poseKey == "LD1" or poseKey == "LD2" or poseKey == "U":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "RU1" or poseKey == "RU2":
-                    self._navigate_posekey("start")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "RD1" or poseKey == "RD2":
-                    self._navigate_posekey("start")
-                    self._navigate_posekey("ARU2")
-                    self._navigate_posekey(poseKey)
-
-            elif self.CURRENT_LOCATION == "CL6" or self.CURRENT_LOCATION == "CL7" or self.CURRENT_LOCATION == "CL8" or self.CURRENT_LOCATION == "CL9" or self.CURRENT_LOCATION == "CL10":
-                # self.BM.moveRotate(315)
-                # self.BM.moveForward(-0.2)
-                if poseKey == "CL1" or poseKey == "CL2" or poseKey == "CL3" or poseKey == "CL4" or poseKey == "CL5":
-                    self._navigate_posekey("start_left")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "CL6" or poseKey == "CL7" or poseKey == "CL8" or poseKey == "CL9" or poseKey == "CL10":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LU1" or poseKey == "LU2":
-                    self._navigate_posekey("start_left")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LD1" or poseKey == "LD2":
-                    self._navigate_posekey("start_left")
-                    self._navigate_posekey("temp_left")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "RU1" or poseKey == "RU2" or poseKey == "RD1" or poseKey == "RD2" or poseKey == "U":
-                    self._navigate_posekey(poseKey)
-
-            elif self.CURRENT_LOCATION == "LU1" or self.CURRENT_LOCATION == "LU2":
-                self.BM.moveRotate(90)
-                self.BM.moveForward(-0.2)
-                if poseKey == "CL1" or poseKey == "CL2" or poseKey == "CL3" or poseKey == "CL4" or poseKey == "CL5":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "CL6" or poseKey == "CL7" or poseKey == "CL8" or poseKey == "CL9" or poseKey == "CL10":
-                    self._navigate_posekey("start")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LU1" or poseKey == "LU2" or poseKey == "LD1" or poseKey == "LD2" or poseKey == "U" or poseKey == "RU1" or poseKey == "RU2":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "RD1" or poseKey == "RD2":
-                    self._navigate_posekey("start")
-                    self._navigate_posekey("ARU2")
-                    self._navigate_posekey(poseKey)
-
-            elif self.CURRENT_LOCATION == "LD1" or self.CURRENT_LOCATION == "LD2":
-                self.BM.moveRotate(20)
-                self.BM.moveForward(-0.2)
-                if poseKey == "CL1" or poseKey == "CL2" or poseKey == "CL3" or poseKey == "CL4" or poseKey == "CL5":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "CL6" or poseKey == "CL7" or poseKey == "CL8" or poseKey == "CL9" or poseKey == "CL10":
-                    self._navigate_posekey("ALU2")
-                    self._navigate_posekey("start")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LU1" or poseKey == "LU2" or poseKey == "LD1" or poseKey == "LD2":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "RU1" or poseKey == "RU2" or poseKey == "U":
-                    self._navigate_posekey("ALU2")
-                    self._navigate_posekey("start")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "RD1" or poseKey == "RD2":
-                    self._navigate_posekey("ALU2")
-                    self._navigate_posekey("start")
-                    self._navigate_posekey("ARU2")
-                    self._navigate_posekey(poseKey)
-
-            elif self.CURRENT_LOCATION == "RU1" or self.CURRENT_LOCATION == "RU2":
-                if self.CURRENT_LOCATION == "RU1":
-                    self.BM.moveForward(-0.3)
-                self.BM.moveRotate(90)
-                self.BM.moveForward(-0.2)
-                if poseKey == "CL1" or poseKey == "CL2" or poseKey == "CL3" or poseKey == "CL4" or poseKey == "CL5":
-                    self._navigate_posekey("start_left")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "CL6" or poseKey == "CL7" or poseKey == "CL8" or poseKey == "CL9" or poseKey == "CL10":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LU1" or poseKey == "LU2" or poseKey == "RD1" or poseKey == "RD2" or poseKey == "U" or poseKey == "RU1" or poseKey == "RU2":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LD1" or poseKey == "LD2":
-                    self._navigate_posekey("start_left")
-                    self._navigate_posekey("temp_left")
-                    self._navigate_posekey(poseKey)
-
-            elif self.CURRENT_LOCATION == "RD1" or self.CURRENT_LOCATION == "RD2":
-                self.BM.moveRotate(160)
-                self.BM.moveForward(-0.2)
-                if poseKey == "CL1" or poseKey == "CL2" or poseKey == "CL3" or poseKey == "CL4" or poseKey == "CL5":
-                    self._navigate_posekey("temp2_left")
-                    self._navigate_posekey("start_left")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "CL6" or poseKey == "CL7" or poseKey == "CL8" or poseKey == "CL9" or poseKey == "CL10":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "RU1" or poseKey == "RU2" or poseKey == "RD1" or poseKey == "RD2":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LU1" or poseKey == "LU2" or poseKey == "U":
-                    self._navigate_posekey("temp2_left")
-                    self._navigate_posekey("start_left")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LD1" or poseKey == "LD2":
-                    self._navigate_posekey("temp2_left")
-                    self._navigate_posekey("start_left")
-                    self._navigate_posekey("temp_left")
-                    self._navigate_posekey(poseKey)
-
-            elif self.CURRENT_LOCATION == "U":
-                self.BM.moveRotate(90)
-                self.BM.moveForward(-0.2)
-                if poseKey == "CL1" or poseKey == "CL2" or poseKey == "CL3" or poseKey == "CL4" or poseKey == "CL5":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "CL6" or poseKey == "CL7" or poseKey == "CL8" or poseKey == "CL9" or poseKey == "CL10":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "RU1" or poseKey == "RU2" or poseKey == "LU1" or poseKey == "LU2" or poseKey == "U":
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "RD1" or poseKey == "RD2":
-                    self._navigate_posekey("ARU2")
-                    self._navigate_posekey(poseKey)
-                elif poseKey == "LD1" or poseKey == "LD2":
-                    self._navigate_posekey("temp_left")
-                    self._navigate_posekey(poseKey)
-            else:
-                self._navigate_posekey(poseKey)
-            
-        self.CURRENT_LOCATION = poseKey
+                return
+            # 匹配导航规则
+            rule = NavigationRule._match_rule(self.CURRENT_LOCATION, poseKey, self.nav_rules)
+            # 执行预处理
+            NavigationRule._execute_pre(rule.get('pre', []), self.BM)
+            # 执行中间点
+            for wp in rule.get('waypoints', []):
+                NavigationRule._navigate_posekey_waypoint(wp, self.move_base_AS, self.position)
+            self._navigate_posekey(poseKey)
+            self.CURRENT_LOCATION = poseKey
 
     def _navigate_posekey(self, poseKey): # 导航到指定位置函数原型
         goal = MoveBaseGoal()
@@ -405,18 +413,24 @@ class MainController:
     def process_box(self, box_id): # 邮箱拍照服务
         try:
             response = self.photo_box_proxy()
-            self.mail_box.append({
-                    'box_id': box_id,
-                    'result': response.result
-                })
-            self.priority_provinces.append(response.result)
-            if box_id == "LU1" or box_id == "LU2" or box_id == "LD1" or box_id == "LD2":
-                self.L_provinces.append(response.result)
-            elif box_id == "RU1" or box_id == "RU2" or box_id == "RD1" or box_id == "RD2":
-                self.R_provinces.append(response.result)
+            result = response.result
+            if result in self.expected_provinces and result not in self.success_provinces:
+                self.mail_box.append({
+                        'box_id': box_id,
+                        'result': result
+                    })
+                self.priority_provinces.append(result)
+                if box_id == "LU1" or box_id == "LU2" or box_id == "LD1" or box_id == "LD2":
+                    self.L_provinces.append(response.result)
+                elif box_id == "RU1" or box_id == "RU2" or box_id == "RD1" or box_id == "RD2":
+                    self.R_provinces.append(response.result)
+                self.success_provinces.add(result)
+            else:
+                self.failed_boxes.append(box_id)
+                print("邮箱识别无效或重复!")
         except rospy.ServiceException as e:
             print("邮箱拍照服务调用失败!")
-    
+
     def grasp_mail(self, mail): # 抓取邮件
         try:
             self.navigate_posekey("CL" + str(mail['positions_x']))
@@ -526,77 +540,19 @@ class MainController:
             mail_table = [mail for mail in mail_table if mail not in grabbed_mails]
             grabbed_mails = []
 
-    def AutoSet(self): # 测试用
-        self.mail_box.append({'box_id': "LU1", 'result': 1})
-        self.mail_box.append({'box_id': "LU2", 'result': 2})
-        self.mail_box.append({'box_id': "LD1", 'result': 3})
-        self.mail_box.append({'box_id': "LD2", 'result': 4})
-        self.mail_box.append({'box_id': "RU1", 'result': 5})
-        self.mail_box.append({'box_id': "RU2", 'result': 6})
-        self.mail_box.append({'box_id': "RD1", 'result': 7})
-        self.mail_box.append({'box_id': "RD2", 'result': 8})
-        
-        self.priority_provinces.append(1)
-        self.priority_provinces.append(2)
-        self.priority_provinces.append(3)
-        self.priority_provinces.append(4)
-        self.priority_provinces.append(5)
-        self.priority_provinces.append(6)
-        self.priority_provinces.append(7)
-        self.priority_provinces.append(8)
-
-        self.L_provinces.append(1)
-        self.L_provinces.append(2)
-        self.L_provinces.append(3)
-        self.L_provinces.append(4)
-        self.R_provinces.append(5)
-        self.R_provinces.append(6)
-        self.R_provinces.append(7)
-        self.R_provinces.append(8)
-        
-        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 1,})
-        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 2,})
-        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 3,})
-        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 4,})
-        self.mail_table.append({'results': 1,'positions_z': 1,'positions_x': 5,})
-        self.mail_table.append({'results': 1,'positions_z': 1,'positions_x': 6,})
-        self.mail_table.append({'results': 2,'positions_z': 1,'positions_x': 7,})
-        self.mail_table.append({'results': 2,'positions_z': 1,'positions_x': 8,})
-        self.mail_table.append({'results': 3,'positions_z': 1,'positions_x': 9,})
-        self.mail_table.append({'results': 3,'positions_z': 1,'positions_x': 10,})
-
-        self.mail_table.append({'results': 4,'positions_z': 2,'positions_x': 1,})
-        self.mail_table.append({'results': 4,'positions_z': 2,'positions_x': 2,})
-        self.mail_table.append({'results': 5,'positions_z': 2,'positions_x': 3,})
-        self.mail_table.append({'results': 5,'positions_z': 2,'positions_x': 4,})
-        self.mail_table.append({'results': 6,'positions_z': 2,'positions_x': 5,})
-        self.mail_table.append({'results': 6,'positions_z': 2,'positions_x': 6,})
-        self.mail_table.append({'results': 7,'positions_z': 2,'positions_x': 7,})
-        self.mail_table.append({'results': 7,'positions_z': 2,'positions_x': 8,})
-        self.mail_table.append({'results': 8,'positions_z': 2,'positions_x': 9,})
-        self.mail_table.append({'results': 8,'positions_z': 2,'positions_x': 10,})
-
-        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 1,})
-        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 2,})
-        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 3,})
-        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 4,})
-        self.mail_table_L.append({'results': 1,'positions_z': 1,'positions_x': 5,})
-        self.mail_table_R.append({'results': 1,'positions_z': 1,'positions_x': 6,})
-        self.mail_table_R.append({'results': 2,'positions_z': 1,'positions_x': 7,})
-        self.mail_table_R.append({'results': 2,'positions_z': 1,'positions_x': 8,})
-        self.mail_table_R.append({'results': 3,'positions_z': 1,'positions_x': 9,})
-        self.mail_table_R.append({'results': 3,'positions_z': 1,'positions_x': 10,})
-
-        self.mail_table_L.append({'results': 4,'positions_z': 2,'positions_x': 1,})
-        self.mail_table_L.append({'results': 4,'positions_z': 2,'positions_x': 2,})
-        self.mail_table_L.append({'results': 5,'positions_z': 2,'positions_x': 3,})
-        self.mail_table_L.append({'results': 5,'positions_z': 2,'positions_x': 4,})
-        self.mail_table_L.append({'results': 6,'positions_z': 2,'positions_x': 5,})
-        self.mail_table_R.append({'results': 6,'positions_z': 2,'positions_x': 6,})
-        self.mail_table_R.append({'results': 7,'positions_z': 2,'positions_x': 7,})
-        self.mail_table_R.append({'results': 7,'positions_z': 2,'positions_x': 8,})
-        self.mail_table_R.append({'results': 8,'positions_z': 2,'positions_x': 9,})
-        self.mail_table_R.append({'results': 8,'positions_z': 2,'positions_x': 10,})
+    def handle_failed_boxes(self): # 处理失败的邮箱
+        missing_provinces = self.expected_provinces - self.success_provinces
+        missing_list = list(missing_provinces)
+        random.shuffle(missing_list)
+        for box_id, province in zip(self.failed_boxes, missing_list):
+            self.mail_box.append({'box_id': box_id, 'result': province})
+            self.priority_provinces.append(province)
+            if box_id in ["LU1", "LU2", "LD1", "LD2"]:
+                self.L_provinces.append(province)
+            else:
+                self.R_provinces.append(province)
+            self.success_provinces.add(province)
+            print("失败的邮箱" + str(box_id) + "已被重新设置为省份编号" + str(province) + "!")
 
     def run(self):
         self.welcome() # 欢迎界面
@@ -612,14 +568,18 @@ class MainController:
 
         self.CURRENT_STATE = "PHOTO"
 
-        self.takeboxPic_LD() # 邮箱拍照[左下]
-        self.takeshelfPic_L() # 货架拍照[左侧]
-        self.takeboxPic_LU() # 邮箱拍照[左上]
-        self.takeboxPic_RU() # 邮箱拍照[右上]
-        self.takeshelfPic_R() # 货架拍照[右侧]
-        self.takeboxPic_RD() # 邮箱拍照[右下]
+        # self.takeboxPic_LD() # 邮箱拍照[左下]
+        # self.takeshelfPic_L() # 货架拍照[左侧]
+        # self.takeboxPic_LU() # 邮箱拍照[左上]
+        # self.takeboxPic_RU() # 邮箱拍照[右上]
+        # self.takeshelfPic_R() # 货架拍照[右侧]
+        # self.takeboxPic_RD() # 邮箱拍照[右下]
+        
+        # self.handle_failed_boxes() # 处理失败的邮箱
 
         self.navigate_posekey("start")
+
+        self.AutoSet() # 自动设置模拟数据
 
         self.CURRENT_STATE = "RUN"
 
@@ -638,8 +598,9 @@ class MainController:
         self.process_non_priority_mails(self.mail_table) # 处理非优先省份邮件
 
         self.end() # 结束界面
-        
+
 if __name__ == "__main__":
     position_path = "/home/eaibot/nju_ws/src/motion_control/config/position.txt"
-    controller = MainController(position_path)
+    navigate_path = "/home/eaibot/nju_ws/src/motion_control/config/nav_rules.json"
+    controller = MainController(position_path, navigate_path)
     controller.run()

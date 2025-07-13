@@ -194,10 +194,10 @@ class PhotoServiceNode:
                 response_4 = 0
 
         num_province = ['无效', '江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
-        print("左上角省份：", num_province[int(response_1)])
-        print("右上角省份：", num_province[int(response_2)])
-        print("左下角省份：", num_province[int(response_3)])
-        print("右下角省份：", num_province[int(response_4)])
+        print("左上角省份：" + num_province[int(response_1)])
+        print("右上角省份：" + num_province[int(response_2)])
+        print("左下角省份：" + num_province[int(response_3)])
+        print("右下角省份：" + num_province[int(response_4)])
         return PhotoshelfServiceResponse([int(response_1), int(response_2), int(response_3), int(response_4)], [1, 1, 2, 2], [left_top, left_top + 1, left_top, left_top + 1])
     
     def handle_box_photo(self, req):
@@ -219,7 +219,7 @@ class PhotoServiceNode:
         # [box]与server.py建立连接：发送快递箱拍照的图片路径，等待文字识别结果
         response = socket.recv()
         num_province = ['无效', '江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
-        print("邮箱省份：", num_province[int(response)])
+        print("邮箱省份：" + num_province[int(response)])
         return PhotoboxServiceResponse(int(response))
     
 if __name__ == "__main__":

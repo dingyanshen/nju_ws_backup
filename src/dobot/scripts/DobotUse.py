@@ -24,7 +24,7 @@ class DobotServiceNode:
     def handle_grasp(self, req):
         # 抓取服务
         try:
-            print("误差参数：", req.error_x, req.error_y)
+            print("误差参数：" + str(req.error_x) + " " + str(req.error_y))
             self.dobot.CatchBox(req.shelf_z, req.pos_z, req.error_x, req.error_y)
             return GraspServiceResponse(True)
         except Exception as e:

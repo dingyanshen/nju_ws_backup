@@ -57,7 +57,7 @@ class MainController:
         rospy.sleep(0.5)
         print("成功校准位姿为 " + str(poseKey) + "!")
 
-    def navigate_posekey(self, poseKey): # 导航到指定位置
+    def _navigate_posekey(self, poseKey): # 导航到指定位置
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
@@ -137,7 +137,7 @@ if __name__ == "__main__":
             if poseKey not in controller.position:
                 print("输入错误，请重新输入")
                 continue
-            controller.navigate_posekey(poseKey)
+            controller._navigate_posekey(poseKey)
         elif choice == "z":
             theta = raw_input("请输入自转角度：")
             if not theta.isdigit():

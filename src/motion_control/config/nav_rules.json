@@ -1,0 +1,126 @@
+{
+  "default": {},
+
+  "start": {
+    "*": {}
+  },
+
+  "ARD1": {
+    "CL1,CL2,CL3,CL4,CL5": {"waypoints": ["start_left"]},
+    "CL6,CL7,CL8,CL9,CL10,*": {}
+  },
+
+  "CL1": {
+    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
+    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
+    "*": {}
+  },
+  
+  "CL2": {
+    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
+    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
+    "*": {}
+  },
+  
+  "CL3": {
+    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
+    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
+    "*": {}
+  },
+  
+  "CL4": {
+    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
+    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
+    "*": {}
+  },
+  
+  "CL5": {
+    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
+    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
+    "*": {}
+  },
+
+  "CL6": {
+    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
+    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
+    "*": {}
+  },
+  
+  "CL7": {
+    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
+    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
+    "*": {}
+  },
+  
+  "CL8": {
+    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
+    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
+    "*": {}
+  },
+  
+  "CL9": {
+    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
+    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
+    "*": {}
+  },
+  
+  "CL10": {
+    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
+    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
+    "*": {}
+  },
+
+  "LD1": {
+    "*": {"pre": [["rotate", 20], ["forward", -0.15]]},
+    "CL6,CL7,CL8,CL9,CL10,RU1,RU2,U": {"waypoints": ["ALU2", "start"]},
+    "RD1,RD2": {"waypoints": ["ALU2", "start", "ARU2"]}
+  },
+  
+  "LD2": {
+    "*": {"pre": [["rotate", 20], ["forward", -0.15]]},
+    "CL6,CL7,CL8,CL9,CL10,RU1,RU2,U": {"waypoints": ["ALU2", "start"]},
+    "RD1,RD2": {"waypoints": ["ALU2", "start", "ARU2"]}
+  },
+
+  "LU1": {
+    "*": {"pre": [["rotate", 90], ["forward", -0.15]]},
+    "CL6,CL7,CL8,CL9,CL10": {"waypoints": ["start"]},
+    "RD1,RD2": {"waypoints": ["start", "ARU2"]}
+  },
+  
+  "LU2": {
+    "*": {"pre": [["rotate", 90], ["forward", -0.15]]},
+    "CL6,CL7,CL8,CL9,CL10": {"waypoints": ["start"]},
+    "RD1,RD2": {"waypoints": ["start", "ARU2"]}
+  },
+
+  "U": {
+    "*": {"pre": [["rotate", 90], ["forward", -0.15]]},
+    "RD1,RD2": {"waypoints": ["ARU2"]},
+    "LD1,LD2": {"waypoints": ["temp_left"]}
+  },
+
+  "RU2": {
+    "*": {"pre": [["rotate", 90], ["forward", -0.15]]},
+    "CL1,CL2,CL3,CL4,CL5": {"waypoints": ["start_left"]},
+    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]}
+  },
+
+  "RU1": {
+    "*": {"pre": [["forward", -0.3], ["rotate", 90], ["forward", -0.15]]},
+    "CL1,CL2,CL3,CL4,CL5": {"waypoints": ["start_left"]},
+    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]}
+  },
+
+  "RD1": {
+    "*": {"pre": [["rotate", 160], ["forward", -0.15]]},
+    "CL1,CL2,CL3,CL4,CL5,LU1,LU2,U": {"waypoints": ["temp2_left", "start_left"]},
+    "LD1,LD2": {"waypoints": ["temp2_left", "start_left", "temp_left"]}
+  },
+  
+  "RD2": {
+    "*": {"pre": [["rotate", 160], ["forward", -0.15]]},
+    "CL1,CL2,CL3,CL4,CL5,LU1,LU2,U": {"waypoints": ["temp2_left", "start_left"]},
+    "LD1,LD2": {"waypoints": ["temp2_left", "start_left", "temp_left"]}
+  }
+}

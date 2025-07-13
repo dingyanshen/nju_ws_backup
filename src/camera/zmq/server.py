@@ -345,7 +345,7 @@ if __name__ == "__main__":
     while True:
         # 接收拍照节点发送的图片路径
         message = socket.recv_string()
-        print("处理图片:", message)
+        print("处理图片:" + message)
         try:
             if message.endswith("1.jpg"):
                 qrcode_barcodes()
@@ -362,7 +362,7 @@ if __name__ == "__main__":
             elif message.endswith("c.jpg"):
                 c_hard()
             else:
-                print("图片路径存在问题：", message)
+                print("图片路径存在问题：" + message)
                 socket.send(b"0")
         except Exception as e:
             socket.send(b"0")

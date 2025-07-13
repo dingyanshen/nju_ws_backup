@@ -183,7 +183,8 @@ class Dobot():
         HEIGHT_UP = 100
         # 误差参数的校正和安全限定
         error_y = error_y + 3
-        MAXX = 6, MAXY = 10
+        MAXX = 6
+        MAXY = 10
         if error_x > MAXX: error_x = MAXX
         if error_x < -MAXX: error_x = -MAXX
         if error_y > MAXY: error_y = MAXY
@@ -229,7 +230,8 @@ class Dobot():
         # 货架下层高度
         HEIGHT_DOWN = -15
         # 误差参数的校正和安全限定
-        MAXX = 9, MAXY = 10
+        MAXX = 9
+        MAXY = 10
         if error_x > MAXX: error_x = MAXX
         if error_x < -MAXX: error_x = -MAXX
         if error_y > MAXY: error_y = MAXY
@@ -274,7 +276,8 @@ class Dobot():
 
     def CatchBox(self, shelf_z, pos_z, error_x, error_y): #抓取快递盒外层
         # 根据货架位置shelf_z(1-上层 0-下层) 平台位置pos_z(1-上方 0-下方) error_x error_y
-        UPPER_PLATFORM_HEIGHT = -10, LOWER_PLATFORM_HEIGHT = -40 # 平台上下层高度参数
+        UPPER_PLATFORM_HEIGHT = -10
+        LOWER_PLATFORM_HEIGHT = -40
         if shelf_z == 1 and pos_z == 1:
             self.CatchUP(UPPER_PLATFORM_HEIGHT, error_x, error_y) #货架上层邮件抓取到上方
             print('货架上层邮件抓取到上方')
@@ -317,7 +320,8 @@ class Dobot():
     
     def ThrowBox(self, pos_z, mailbox_pos): #投掷快递盒外层
         # 根据平台位置pos_z(1-上方 0-下方) 邮箱位置mailbox_pos(1-右侧 0-左侧)
-        UPPER_HEIGHT = -30, LOWER_HEIGHT = -60 # 平台上下层高度参数
+        UPPER_HEIGHT = -30
+        LOWER_HEIGHT = -60
         if mailbox_pos == 1 and pos_z == 1:
             self.Throw(1, UPPER_HEIGHT) #上方邮件投掷到右侧邮箱
             print('上方邮件投掷到右侧邮箱')
