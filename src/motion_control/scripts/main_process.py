@@ -1,6 +1,9 @@
 #! /usr/bin/env python2.7
 # -*- coding:utf-8 -*-
 
+import os
+import pickle
+import codecs
 import rospy
 import json
 import random
@@ -12,7 +15,96 @@ from dobot.srv import GraspService, ThrowService
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from basic_move import BasicMove
 
-class NavigationRule:
+class StateManager: # 救援模式状态管理类
+    def __init__(self, save_path, log_path):
+        self.save_path = save_path
+        self.log_path = log_path
+        self.state_data = {
+            "completed_ids": set(), # 已完成的邮件编号
+            "current_phase": "INIT", # 用于救援模式的当前阶段
+            "grabbed_mails": [], # 已抓取但未投递的邮件
+
+            "mail_table": [],  
+            "mail_table_L": [],  
+            "mail_table_R": [],  
+            "mail_box": [],  
+            "L_provinces": [],  
+            "R_provinces": [],   
+            "priority_provinces": [], 
+            "success_provinces": set(), 
+            "failed_boxes": [] 
+        }
+
+    def save_state(self, controller): # 保存当前状态到文件
+        self.state_data["completed_ids"] = controller.completed_ids
+        self.state_data["current_phase"] = controller.CURRENT_PHASE
+        self.state_data["grabbed_mails"] = controller.grabbed_mails
+
+        self.state_data["mail_table"] = controller.mail_table
+        self.state_data["mail_table_L"] = controller.mail_table_L
+        self.state_data["mail_table_R"] = controller.mail_table_R
+        self.state_data["mail_box"] = controller.mail_box
+        self.state_data["L_provinces"] = controller.L_provinces
+        self.state_data["R_provinces"] = controller.R_provinces
+        self.state_data["priority_provinces"] = controller.priority_provinces
+        self.state_data["success_provinces"] = controller.success_provinces
+        self.state_data["failed_boxes"] = controller.failed_boxes
+
+        with open(self.save_path, "wb") as f:
+            pickle.dump(self.state_data, f)
+        self._write_log(controller)
+                        
+    def _write_log(self, controller): # 写入包含详细信息的日志
+        log_content = []
+        log_content.append("PHASE:" + controller.CURRENT_PHASE)
+        log_content.append("")
+
+        log_content.append("SUCCESS_PRO:" + str(len(controller.success_provinces)))
+        log_content.append("FAILED_PRO:" + str(len(controller.failed_boxes)))
+        log_content.append("")
+
+        log_content.append("COMPLETED_MAILS:" + str(len(controller.completed_ids)))
+        log_content.append("GRABBED_MAILS:" + str(len(controller.grabbed_mails)))
+        log_content.append("")
+
+        log_content.append("MAILS TABLE:")
+        if controller.mail_table:
+            for mail in controller.mail_table:
+                mail_id = controller.get_mail_id(mail)
+                if mail_id in controller.completed_ids:
+                    status = "DONE"
+                else:
+                    status = "PENDING"
+                log_content.append("NO." + str(mail_id) + " " + str(mail['results']) + " " + status)
+        else:
+            log_content.append("NO MAILS FOUND")
+        log_content.append("")
+
+        log_content.append("BOXES TABLE:")
+        if controller.mail_box:
+            for box in controller.mail_box:
+                log_content.append("ID." + str(box['box_id']) + " " + str(box['result']))
+        else:
+            log_content.append("NO BOXES FOUND")
+        log_content.append("")
+
+        with codecs.open(self.log_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(log_content))
+
+    def load_state(self): # 加载之前保存的状态
+        if os.path.exists(self.save_path):
+            with open(self.save_path, "rb") as f:
+                self.state_data = pickle.load(f)
+            print("已从" + self.save_path + "加载历史状态")
+            return self.state_data
+        return None
+
+    def clear_state(self): # 清除之前保存的状态
+        if os.path.exists(self.save_path):
+            os.remove(self.save_path)
+        print("已清除历史状态文件")
+
+class NavigationRule: # 导航规则类
     @staticmethod
     def _match_rule(current, target, nav_rules): # 匹配当前位置到目标位置的导航逻辑
         if current in nav_rules:
@@ -62,8 +154,8 @@ class NavigationRule:
             rospy.set_param("/move_base/TebLocalPlannerROS/xy_goal_tolerance", original_xy_tolerance)
             rospy.set_param("/move_base/TebLocalPlannerROS/yaw_goal_tolerance", original_yaw_tolerance)
 
-class MainController:
-    def __init__(self, position_path, navigate_path):
+class MainController: # 主控制器类
+    def __init__(self, position_path, navigate_path, state_save_path, log_path):
         rospy.init_node('main_controller')
         self.BM = BasicMove(detailInfo=True)
         self.position = self.loadToDict(position_path, mode="pose")
@@ -98,17 +190,54 @@ class MainController:
         self.CURRENT_STATE = "INIT" # INIT 初始化 PHOTO 拍照 RUN 运行
         self.CURRENT_LOCATION = "INIT" # INIT 初始化 poseKey 坐标
 
-    def debug_print(self): # 调试函数打印状态信息
-        print("Current State: " + str(self.CURRENT_STATE))
-        print("Current Location: " + str(self.CURRENT_LOCATION))
-        print("Mail Table: " + str(self.mail_table))
-        print("Mail Table L: " + str(self.mail_table_L))
-        print("Mail Table R: " + str(self.mail_table_R))
-        print("Mail Box: " + str(self.mail_box))
-        print("Priority Provinces: " + str(self.priority_provinces))
-        print("Left Provinces: " + str(self.L_provinces))
-        print("Right Provinces: " + str(self.R_provinces))
-        print("Platform State: " + str(self.platform_state))
+        self.CURRENT_PHASE = "PHOTO" # 用于救援模式的当前阶段
+        self.grabbed_mails = [] # 已抓取但未投递的邮件
+        self.completed_ids = set()  # 已完成的邮件编号
+        self.state_manager = StateManager(state_save_path, log_path) # 状态管理器实例
+        self.resume_mode = False # 是否为救援模式
+        self.check_rescue_mode() # 检查救援模式
+
+    def check_rescue_mode(self): # 检查救援模式
+        # 检查状态文件是否存在
+        if os.path.exists(self.state_manager.save_path):
+            while True:
+                choice = raw_input("检测到上次异常退出的状态数据，输入H进入救援模式，输入C删除状态数据：").lower()
+                if choice == 'h':  # 进入救援模式并加载状态
+                    self.resume_mode = True
+                    loaded_state = self.state_manager.load_state()
+                    if loaded_state:
+                        self.CURRENT_PHASE = loaded_state["current_phase"]
+                        self.completed_ids = loaded_state["completed_ids"]
+                        self.grabbed_mails = loaded_state["grabbed_mails"]
+                        self.mail_table = loaded_state["mail_table"]
+                        self.mail_table_L = loaded_state["mail_table_L"]
+                        self.mail_table_R = loaded_state["mail_table_R"]
+                        self.mail_box = loaded_state["mail_box"]
+                        self.L_provinces = loaded_state["L_provinces"]
+                        self.R_provinces = loaded_state["R_provinces"]
+                        self.priority_provinces = loaded_state["priority_provinces"]
+                        self.success_provinces = loaded_state["success_provinces"]
+                        self.failed_boxes = loaded_state["failed_boxes"]
+                        print("已进入救援模式 状态：" + str(self.CURRENT_PHASE) + " 已完成：" + str(len(self.completed_ids)) + " 平台上剩余：" + str(len(self.grabbed_mails)) + "!")
+                    else:
+                        print("状态数据加载失败，将从头开始新任务！")
+                        self.resume_mode = False
+                    break  # 退出循环，完成处理
+                elif choice == 'c':  # 清除状态数据
+                    self.state_manager.clear_state()
+                    print("已清除历史状态数据，将从头开始新任务！")
+                    break  # 退出循环，完成处理
+                else:
+                    pass
+        else:
+            print("未检测到历史状态数据，将从头开始新任务！")
+
+    def get_mail_id(self, mail): # 计算邮件唯一编号
+        # 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+        if mail['positions_z'] == 1:
+            return mail['positions_x']
+        else:
+            return 10 + mail['positions_x']
 
     def AutoSet(self): # 模拟拍照阶段 随机邮箱和邮件设置
         self.mail_box.append({'box_id': "LU1", 'result': 1})
@@ -409,6 +538,7 @@ class MainController:
                 })
         except rospy.ServiceException as e:
             print("货架拍照服务调用失败!")
+        self.state_manager.save_state(self)
 
     def process_box(self, box_id): # 邮箱拍照服务
         try:
@@ -430,6 +560,7 @@ class MainController:
                 print("邮箱识别无效或重复!")
         except rospy.ServiceException as e:
             print("邮箱拍照服务调用失败!")
+        self.state_manager.save_state(self)
 
     def grasp_mail(self, mail): # 抓取邮件
         try:
@@ -508,37 +639,53 @@ class MainController:
         grabbed_mails = []
 
         for mail in mail_table:
+            mail_id = self.get_mail_id(mail)
+            if mail_id in self.completed_ids:  # 如果邮件已经完成，跳过
+                continue
+
             if mail['results'] not in priority_provinces:
                 break
+
             if self.grasp_mail(mail):
                 grabbed_mails.append(mail)
 
                 if len(grabbed_mails) >= 2:
-                    self.deliver_mails(grabbed_mails)
-                    mail_table = [mail for mail in mail_table if mail not in grabbed_mails]
+                    if self.deliver_mails(grabbed_mails):
+                        for m in grabbed_mails:
+                            self.completed_ids.add(self.get_mail_id(m))
+                        self.stage_manager.save_state(self) # 状态记录
                     grabbed_mails = []
 
         if grabbed_mails:
-            self.deliver_mails(grabbed_mails)
-            mail_table = [mail for mail in mail_table if mail not in grabbed_mails]
-            grabbed_mails = []
-        return mail_table
+            if self.deliver_mails(grabbed_mails):
+                for m in grabbed_mails:
+                    self.completed_ids.add(self.get_mail_id(m))
+                self.stage_manager.save_state(self) # 状态记录
+
+        return [m for m in mail_table if self.get_mail_id(m) not in self.completed_ids]
 
     def process_non_priority_mails(self, mail_table): # 处理非优先省份邮件
         grabbed_mails = []
         for mail in mail_table:
+            mail_id = self.get_mail_id(mail)
+            if mail_id in self.completed_ids:  # 如果邮件已经完成，跳过
+                continue
+
             if self.grasp_mail(mail):
                 grabbed_mails.append(mail)
 
                 if len(grabbed_mails) >= 2:
-                    self.deliver_mails(grabbed_mails)
-                    mail_table = [mail for mail in mail_table if mail not in grabbed_mails]
+                    if self.deliver_mails(grabbed_mails):
+                        for m in grabbed_mails:
+                            self.completed_ids.add(self.get_mail_id(m))
+                        self.state_manager.save_state(self) # 状态记录
                     grabbed_mails = []
 
         if grabbed_mails:
-            self.deliver_mails(grabbed_mails)
-            mail_table = [mail for mail in mail_table if mail not in grabbed_mails]
-            grabbed_mails = []
+            if self.deliver_mails(grabbed_mails):
+                for m in grabbed_mails:
+                    self.completed_ids.add(self.get_mail_id(m))
+                self.state_manager.save_state(self) # 状态记录
 
     def handle_failed_boxes(self): # 处理失败的邮箱
         missing_provinces = self.expected_provinces - self.success_provinces
@@ -555,7 +702,7 @@ class MainController:
             print("失败的邮箱" + str(box_id) + "已被重新设置为省份编号" + str(province) + "!")
 
     def run(self):
-        self.welcome() # 欢迎界面
+        self.welcome() # 欢迎界面 按下ENTER开始跑车
 
         self.calibratePose("start_left") # 校准起始位姿
 
@@ -568,19 +715,19 @@ class MainController:
 
         self.CURRENT_STATE = "PHOTO"
 
-        # self.takeboxPic_LD() # 邮箱拍照[左下]
-        # self.takeshelfPic_L() # 货架拍照[左侧]
-        # self.takeboxPic_LU() # 邮箱拍照[左上]
-        # self.takeboxPic_RU() # 邮箱拍照[右上]
-        # self.takeshelfPic_R() # 货架拍照[右侧]
-        # self.takeboxPic_RD() # 邮箱拍照[右下]
-        
-        # self.handle_failed_boxes() # 处理失败的邮箱
+        if not self.resume_mode: # 救援模式不需要拍照
+            self.takeboxPic_LD() # 邮箱拍照[左下]
+            self.takeshelfPic_L() # 货架拍照[左侧]
+            self.takeboxPic_LU() # 邮箱拍照[左上]
+            self.takeboxPic_RU() # 邮箱拍照[右上]
+            self.takeshelfPic_R() # 货架拍照[右侧]
+            self.takeboxPic_RD() # 邮箱拍照[右下]
+            self.handle_failed_boxes() # 处理失败的邮箱
+        else:
+            self.CURRENT_STATE = "RUN"
+            print("救援模式已启用，跳过拍照阶段！")
 
         self.navigate_posekey("start")
-
-        self.AutoSet() # 自动设置模拟数据
-
         self.CURRENT_STATE = "RUN"
 
         self.mail_table_R = self.select_nearest_province(self.mail_table_R, self.R_provinces) # 对mail_table按照priority_provinces重新排序
@@ -597,10 +744,13 @@ class MainController:
         print("开始处理非优先省份邮件...")
         self.process_non_priority_mails(self.mail_table) # 处理非优先省份邮件
 
+        self.state_manager.clear_state() # 清除之前保存的状态
         self.end() # 结束界面
 
 if __name__ == "__main__":
     position_path = "/home/eaibot/nju_ws/src/motion_control/config/position.txt"
     navigate_path = "/home/eaibot/nju_ws/src/motion_control/config/nav_rules.json"
-    controller = MainController(position_path, navigate_path)
-    controller.run()
+    state_save_path = "/home/eaibot/nju_ws/src/motion_control/config/state_save.pkl"
+    log_path = "/home/eaibot/nju_ws/src/motion_control/config/state_log.txt"
+    controller = MainController(position_path, navigate_path, state_save_path, log_path) # 创建主控制器实例
+    controller.run() # 启动主控制器
