@@ -1,126 +1,127 @@
 {
-  "default": {},
-
-  "start": {
-    "*": {}
-  },
-
-  "ARD1": {
-    "CL1,CL2,CL3,CL4,CL5": {"waypoints": ["start_left"]},
-    "CL6,CL7,CL8,CL9,CL10,*": {}
-  },
-
   "CL1": {
-    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
-    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
-    "*": {}
+    "default": {}
   },
   
   "CL2": {
-    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
-    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
-    "*": {}
+    "CL1": {"pre": [["forward", -0.15]]},
+    "default": {}
   },
   
   "CL3": {
-    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
-    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
-    "*": {}
+    "CL2": {"pre": [["forward", -0.15]]},
+    "CL1": {"pre": [["forward", -0.3]]},
+    "default": {}
   },
   
   "CL4": {
-    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
-    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
-    "*": {}
+    "CL3": {"pre": [["forward", -0.15]]},
+    "CL2": {"pre": [["forward", -0.3]]},
+    "CL1": {"pre": [["forward", -0.45]]},
+    "default": {}
   },
   
   "CL5": {
-    "CL6,CL7,CL8,CL9,CL10,RU1,RU2": {"waypoints": ["start"]},
-    "RD1,RD2": {"waypoints": ["start", "ARU2"]},
-    "*": {}
+    "CL4": {"pre": [["forward", -0.15]]},
+    "CL3": {"pre": [["forward", -0.3]]},
+    "CL2": {"pre": [["forward", -0.45]]},
+    "CL1": {"pre": [["forward", -0.6]]},
+    "default": {}
   },
 
   "CL6": {
-    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
-    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
-    "*": {}
+    "RD2": {},
+    "CL7,CL8,CL9,CL10": {},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "CL7": {
-    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
-    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
-    "*": {}
+    "RD2": {},
+    "CL8,CL9,CL10": {},
+    "CL6": {"pre": [["forward", -0.15]]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "CL8": {
-    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
-    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
-    "*": {}
+    "RD2": {},
+    "CL9,CL10": {},
+    "CL7": {"pre": [["forward", -0.15]]},
+    "CL6": {"pre": [["forward", -0.3]]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "CL9": {
-    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
-    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
-    "*": {}
+    "CL10": {},
+    "CL8": {"pre": [["forward", -0.15]]},
+    "CL7": {"pre": [["forward", -0.3]]},
+    "CL6": {"pre": [["forward", -0.45]]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "CL10": {
-    "CL1,CL2,CL3,CL4,CL5,LU1,LU2": {"waypoints": ["start_left"]},
-    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]},
-    "*": {}
+    "CL9": {"pre": [["forward", -0.15]]},
+    "CL8": {"pre": [["forward", -0.3]]},
+    "CL7": {"pre": [["forward", -0.45]]},
+    "CL6": {"pre": [["forward", -0.6]]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
 
   "LD1": {
-    "*": {"pre": [["rotate", 20], ["forward", -0.15]]},
-    "CL6,CL7,CL8,CL9,CL10,RU1,RU2,U": {"waypoints": ["ALU2", "start"]},
-    "RD1,RD2": {"waypoints": ["ALU2", "start", "ARU2"]}
+    "CL6,CL7,CL8,CL9,CL10,RD1,RD2": {"pre": [["rotate", 45], ["forward", -0.15]], "waypoints": ["start"]},
+    "LD2": {},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "LD2": {
-    "*": {"pre": [["rotate", 20], ["forward", -0.15]]},
-    "CL6,CL7,CL8,CL9,CL10,RU1,RU2,U": {"waypoints": ["ALU2", "start"]},
-    "RD1,RD2": {"waypoints": ["ALU2", "start", "ARU2"]}
+    "CL6,CL7,CL8,CL9,CL10,RD1,RD2": {"pre": [["rotate", 45], ["forward", -0.15]], "waypoints": ["start"]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
 
   "LU1": {
-    "*": {"pre": [["rotate", 90], ["forward", -0.15]]},
-    "CL6,CL7,CL8,CL9,CL10": {"waypoints": ["start"]},
-    "RD1,RD2": {"waypoints": ["start", "ARU2"]}
+    "LU2,U,RU2,RU1,RD1,RD2,CL6,CL7,CL8,CL9,CL10": {},
+    "CL1,CL2,CL3,CL4,CL5": {"pre": [["rotate", 135], ["forward", -0.3]]},
+    "default": {"pre": [["rotate", 90], ["forward", -0.15]]}
   },
   
   "LU2": {
-    "*": {"pre": [["rotate", 90], ["forward", -0.15]]},
-    "CL6,CL7,CL8,CL9,CL10": {"waypoints": ["start"]},
-    "RD1,RD2": {"waypoints": ["start", "ARU2"]}
+    "U,RU2,RU1,RD1,RD2,CL6,CL7,CL8,CL9,CL10": {},
+    "LU1": {"pre": [["forward", -0.6]]},
+    "CL1,CL2,CL3,CL4,CL5": {"pre": [["rotate", 135], ["forward", -0.3]]},
+    "LD1,LD2": {"pre": [["rotate", 135], ["forward", -0.1]]},
+    "default": {"pre": [["rotate", 90], ["forward", -0.15]]}
   },
 
   "U": {
-    "*": {"pre": [["rotate", 90], ["forward", -0.15]]},
-    "RD1,RD2": {"waypoints": ["ARU2"]},
-    "LD1,LD2": {"waypoints": ["temp_left"]}
+    "RU2,RU1,RD1,RD2,CL6,CL7,CL8,CL9,CL10": {},
+    "LU2": {"pre": [["forward", -0.6]]},
+    "LU1": {"pre": [["rotate", 80], ["forward", -0.3]]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.2]]}
   },
 
   "RU2": {
-    "*": {"pre": [["rotate", 90], ["forward", -0.15]]},
-    "CL1,CL2,CL3,CL4,CL5": {"waypoints": ["start_left"]},
-    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]}
+    "RU1": {},
+    "U": {"pre": [["forward", -0.6]]},
+    "LU1,LU2,CL1,CL2,CL3,CL4,CL5": {"pre": [["rotate", 80], ["forward", -0.3]]},
+    "LD1,LD2": {"pre": [["rotate", 80], ["forward", -0.3], ["rotate", 150], ["forward", 0.6]]},
+    "RD1,RD2": {"pre": [["rotate", 90], ["forward", -0.4]]},
+    "CL6,CL7,CL8,CL9,CL10": {"pre": [["rotate", 30], ["forward", -0.3]]},
+    "default": {"pre": [["rotate", 90], ["forward", -0.15]]}
   },
 
   "RU1": {
-    "*": {"pre": [["forward", -0.3], ["rotate", 90], ["forward", -0.15]]},
-    "CL1,CL2,CL3,CL4,CL5": {"waypoints": ["start_left"]},
-    "LD1,LD2": {"waypoints": ["start_left", "temp_left"]}
+    "RU2": {"pre": [["forward", -0.6]]},
+    "default": {"pre": [["forward", -0.3], ["rotate", 90], ["forward", -0.35]]}
+  },
+
+  "RD2": {
+    "CL1,CL2,CL3,CL4,CL5,LD1,LD2": {"waypoints": ["start_left"]},
+    "default": {}
   },
 
   "RD1": {
-    "*": {"pre": [["rotate", 160], ["forward", -0.15]]},
-    "CL1,CL2,CL3,CL4,CL5,LU1,LU2,U": {"waypoints": ["temp2_left", "start_left"]},
-    "LD1,LD2": {"waypoints": ["temp2_left", "start_left", "temp_left"]}
+    "RD2":{"pre": [["forward", -0.7]]},
+    "default": {"pre": [["forward", 0.35]]}
   },
-  
-  "RD2": {
-    "*": {"pre": [["rotate", 160], ["forward", -0.15]]},
-    "CL1,CL2,CL3,CL4,CL5,LU1,LU2,U": {"waypoints": ["temp2_left", "start_left"]},
-    "LD1,LD2": {"waypoints": ["temp2_left", "start_left", "temp_left"]}
-  }
+
+  "default": {}
 }

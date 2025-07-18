@@ -110,19 +110,11 @@ class NavigationRule: # 导航规则类
         if current in nav_rules:
             current_rules = nav_rules[current]
             for target_group, rule in current_rules.items():
-                if any(NavigationRule._is_in_group(target, g) for g in target_group.split(',')):
+                if target_group != 'default' and target in target_group.split(','):
                     return rule
-            if '*' in current_rules:
-                return current_rules['*']
+            if 'default' in current_rules:
+                return current_rules['default']
         return nav_rules.get('default', {})
-    
-    @staticmethod
-    def _is_in_group(target, group): # 判断目标所属组
-        # 处理通配符
-        if group == '*':
-            return True
-        # 处理单元素组
-        return target == group
 
     @staticmethod
     def _execute_pre(pre_actions, BM): # 执行预处理动作
@@ -139,8 +131,8 @@ class NavigationRule: # 导航规则类
         original_yaw_tolerance = rospy.get_param("/move_base/TebLocalPlannerROS/yaw_goal_tolerance")
         
         try:
-            rospy.set_param("/move_base/TebLocalPlannerROS/xy_goal_tolerance", 0.05)
-            rospy.set_param("/move_base/TebLocalPlannerROS/yaw_goal_tolerance", 0.05)
+            rospy.set_param("/move_base/TebLocalPlannerROS/xy_goal_tolerance", 0.08)
+            rospy.set_param("/move_base/TebLocalPlannerROS/yaw_goal_tolerance", 0.08)
 
             goal = MoveBaseGoal()
             goal.target_pose.header.frame_id = "map"

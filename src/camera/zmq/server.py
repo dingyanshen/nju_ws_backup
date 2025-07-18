@@ -8,8 +8,12 @@ import numpy as np
 import pnp
 from pupil_apriltags import Detector
 
-def detect_apriltags(image_path, target_tags=[7, 17]):
+def detect_apriltags(image_path, target_tags=[1, 11]):
     # 货架拍照：检测图片特定AprilTags 返回-1或四张切割图片路径
+
+    image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+    path = "/home/eaibot/nju_ws/src/camera/img_shelf/{}_s.jpg".format(image_name)
+
     image = cv2.imread(image_path)
     if image is None:
         raise ValueError(f"无法读取图片: {image_path}")
@@ -27,7 +31,7 @@ def detect_apriltags(image_path, target_tags=[7, 17]):
             tag_positions_x[tag_id] = x
             tag_positions_y[tag_id] = y
 
-    if len(tag_positions_x)<2: # 检测到属于目标标签的数量小于2
+    if len(tag_positions_x) < 2: # 检测到属于目标标签的数量小于2
         return -1
     
     x=(tag_positions_x[target_tags[0]]+tag_positions_x[target_tags[1]])//2
@@ -45,9 +49,6 @@ def detect_apriltags(image_path, target_tags=[7, 17]):
     pic_ur=image[u:y,x:r]
     pic_dl=image[y:d,l:x]
     pic_dr=image[y:d,x:r]
-
-    image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
-    path = "/home/eaibot/nju_ws/src/camera/img_shelf/{}_s.jpg".format(image_name)
     
     path1 = path + "_dl_1.jpg"
     cv2.imwrite(path1,pic_dl)
@@ -69,8 +70,24 @@ def detect_apriltags(image_path, target_tags=[7, 17]):
 
     return path
 
-def detect_apriltags_catch(image_path, target_tags=[7, 17], height=1, location=1):
+def detect_apriltags_catch(image_path, target_tags=[1, 11], height=1, location=1):
     # 抓取时拍照：检测图片特定AprilTags 返回-1或填充后的图片路径
+
+    image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+    path = "/home/eaibot/nju_ws/src/camera/img_catch/{}_c.jpg".format(image_name)
+
+    # 最后一列特殊处理标志
+    LAST_COLUMN_TAGS = False
+    if target_tags[0] == 10 and target_tags[1] == 20:
+        LAST_COLUMN_TAGS = True
+
+    # 右侧非最后一列偏移
+    if location == 2 and LAST_COLUMN_TAGS == False:
+        target_tags = [target_tags[0] + 1, target_tags[1] + 1]
+    
+    # [1,11]:1,11 [2,12]:2,12 [3,13]:3,13 [4,14]:4,14 [5,15]:5,15
+    # [7,17]:6,16 [8,18]:7,17 [9,19]:8,18 [10,20]:9,19 [10,20]:10,20
+    
     image = cv2.imread(image_path)
     if image is None:
         raise ValueError(f"无法读取图片: {image_path}")
@@ -88,7 +105,16 @@ def detect_apriltags_catch(image_path, target_tags=[7, 17], height=1, location=1
             tag_positions_x[tag_id] = x
             tag_positions_y[tag_id] = y
 
-    if len(tag_positions_x)<2: # 检测到属于目标标签的数量小于2
+    if len(tag_positions_x) < 2: # 检测到属于目标标签的数量小于2
+        if LAST_COLUMN_TAGS == True: # 如果是因为最后一列
+            if height == 1:
+                image[0:480, 0:140] = (255, 255, 255)
+                image[240:480, 0:640] = (255, 255, 255)
+            elif height == 2:
+                image[0:480, 0:140] = (255, 255, 255)
+                image[0:240, 0:640] = (255, 255, 255)
+            cv2.imwrite(path,image)
+            return path
         return -1
             
     x=(tag_positions_x[target_tags[0]]+tag_positions_x[target_tags[1]])//2
@@ -115,17 +141,16 @@ def detect_apriltags_catch(image_path, target_tags=[7, 17], height=1, location=1
     pic_dr=np.full((h, w, 3), bg_color, dtype=np.uint8)
     pic_dr[y:d,x:r]=image[y:d,x:r]
 
-    image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
-    path = "/home/eaibot/nju_ws/src/camera/img_catch/{}_c.jpg".format(image_name)
-
-    if height == 1 and location == 1:
-        cv2.imwrite(path,pic_ul)
-    elif height == 1 and location == 2:
-        cv2.imwrite(path,pic_ur)
-    elif height == 2 and location == 1:
-        cv2.imwrite(path,pic_dl)
-    elif height == 2 and location == 2:
-        cv2.imwrite(path,pic_dr)
+    if LAST_COLUMN_TAGS == True:
+        if height == 1:
+            cv2.imwrite(path,pic_ur)
+        elif height == 2:
+            cv2.imwrite(path,pic_dr)
+    else:
+        if height == 1:
+            cv2.imwrite(path,pic_ul)
+        elif height == 2:
+            cv2.imwrite(path,pic_dl)
     return path
 
 def calculate(frame, points):
