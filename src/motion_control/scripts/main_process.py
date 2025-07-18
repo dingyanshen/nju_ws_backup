@@ -8,6 +8,7 @@ import rospy
 import json
 import random
 import actionlib
+from collections import defaultdict
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion
 from actionlib_msgs.msg import *
 from camera.srv import PhotoshelfService, PhotoboxService, PhotoService
@@ -21,34 +22,18 @@ class StateManager: # 救援模式状态管理类
         self.log_path = log_path
         self.state_data = {
             "completed_ids": set(), # 已完成的邮件编号
-            "current_phase": "INIT", # 用于救援模式的当前阶段
             "grabbed_mails": [], # 已抓取但未投递的邮件
-
-            "mail_table": [],  
-            "mail_table_L": [],  
-            "mail_table_R": [],  
-            "mail_box": [],  
-            "L_provinces": [],  
-            "R_provinces": [],   
-            "priority_provinces": [], 
-            "success_provinces": set(), 
-            "failed_boxes": [] 
+            "mail_table": [], # 邮件静态字典
+            "mail_box": [], # 邮箱静态字典
+            "platform_state": 0, # 平台状态
         }
 
     def save_state(self, controller): # 保存当前状态到文件
         self.state_data["completed_ids"] = controller.completed_ids
-        self.state_data["current_phase"] = controller.CURRENT_PHASE
         self.state_data["grabbed_mails"] = controller.grabbed_mails
-
         self.state_data["mail_table"] = controller.mail_table
-        self.state_data["mail_table_L"] = controller.mail_table_L
-        self.state_data["mail_table_R"] = controller.mail_table_R
         self.state_data["mail_box"] = controller.mail_box
-        self.state_data["L_provinces"] = controller.L_provinces
-        self.state_data["R_provinces"] = controller.R_provinces
-        self.state_data["priority_provinces"] = controller.priority_provinces
-        self.state_data["success_provinces"] = controller.success_provinces
-        self.state_data["failed_boxes"] = controller.failed_boxes
+        self.state_data["platform_state"] = controller.platform_state
 
         with open(self.save_path, "wb") as f:
             pickle.dump(self.state_data, f)
@@ -56,17 +41,13 @@ class StateManager: # 救援模式状态管理类
                         
     def _write_log(self, controller): # 写入包含详细信息的日志
         log_content = []
-        log_content.append("PHASE:" + controller.CURRENT_PHASE)
-        log_content.append("")
-
-        log_content.append("SUCCESS_PRO:" + str(len(controller.success_provinces)))
-        log_content.append("FAILED_PRO:" + str(len(controller.failed_boxes)))
-        log_content.append("")
 
         log_content.append("COMPLETED_MAILS:" + str(len(controller.completed_ids)))
         log_content.append("GRABBED_MAILS:" + str(len(controller.grabbed_mails)))
+        log_content.append("PLATFORM_STATE:" + str(controller.platform_state))
         log_content.append("")
 
+        # 打印邮件静态字典
         log_content.append("MAILS TABLE:")
         if controller.mail_table:
             for mail in controller.mail_table:
@@ -80,6 +61,7 @@ class StateManager: # 救援模式状态管理类
             log_content.append("NO MAILS FOUND")
         log_content.append("")
 
+        # 打印邮箱静态字典
         log_content.append("BOXES TABLE:")
         if controller.mail_box:
             for box in controller.mail_box:
@@ -146,7 +128,7 @@ class NavigationRule: # 导航规则类
             rospy.set_param("/move_base/TebLocalPlannerROS/xy_goal_tolerance", original_xy_tolerance)
             rospy.set_param("/move_base/TebLocalPlannerROS/yaw_goal_tolerance", original_yaw_tolerance)
 
-class MainController: # 主控制器类
+class MainController: # 基础功能类
     def __init__(self, position_path, navigate_path, state_save_path, log_path):
         rospy.init_node('main_controller')
         self.BM = BasicMove(detailInfo=True)
@@ -166,25 +148,23 @@ class MainController: # 主控制器类
         self.grasp_proxy = rospy.ServiceProxy('dobot_grasp_service', GraspService)
         self.throw_proxy = rospy.ServiceProxy('dobot_throw_service', ThrowService)
 
-        self.mail_table = [] # results.positions_z.positions_x
-        self.mail_table_L = [] # 左侧货架
-        self.mail_table_R = [] # 右侧货架
-        self.mail_box = [] # box_id.result
-        self.priority_provinces = [] # 省份优先级
-        self.L_provinces = [] # 左侧省份
-        self.R_provinces = [] # 右侧省份
-        self.platform_state = 0 # 平台状态
+        # 邮件静态字典 {'results': _, 'positions_z': _, 'positions_x': _, 'side': _}
+        self.mail_table = []
 
-        self.expected_provinces = set(range(1, 9))  # 预期省份编号为1 2 3 4 5 6 7 8
+        # 邮箱静态字典 {'box_id': _, 'result': _, 'side': _}
+        self.mail_box = []
+
+        # 以下用于处理失败的邮箱
+        self.expected_provinces = set(range(1, 9))  # 预期省份编号为 1 2 3 4 5 6 7 8
         self.failed_boxes = []  # 识别失败的箱子编号
         self.success_provinces = set()  # 识别成功的省份编号
 
+        self.platform_state = 0 # 平台状态
         self.CURRENT_STATE = "INIT" # INIT 初始化 PHOTO 拍照 RUN 运行
         self.CURRENT_LOCATION = "INIT" # INIT 初始化 poseKey 坐标
-
-        self.CURRENT_PHASE = "PHOTO" # 用于救援模式的当前阶段
         self.grabbed_mails = [] # 已抓取但未投递的邮件
         self.completed_ids = set()  # 已完成的邮件编号
+
         self.state_manager = StateManager(state_save_path, log_path) # 状态管理器实例
         self.resume_mode = False # 是否为救援模式
         self.check_rescue_mode() # 检查救援模式
@@ -198,19 +178,12 @@ class MainController: # 主控制器类
                     self.resume_mode = True
                     loaded_state = self.state_manager.load_state()
                     if loaded_state:
-                        self.CURRENT_PHASE = loaded_state["current_phase"]
+                        self.mail_table = loaded_state["mail_table"]
+                        self.mail_box = loaded_state["mail_box"]
                         self.completed_ids = loaded_state["completed_ids"]
                         self.grabbed_mails = loaded_state["grabbed_mails"]
-                        self.mail_table = loaded_state["mail_table"]
-                        self.mail_table_L = loaded_state["mail_table_L"]
-                        self.mail_table_R = loaded_state["mail_table_R"]
-                        self.mail_box = loaded_state["mail_box"]
-                        self.L_provinces = loaded_state["L_provinces"]
-                        self.R_provinces = loaded_state["R_provinces"]
-                        self.priority_provinces = loaded_state["priority_provinces"]
-                        self.success_provinces = loaded_state["success_provinces"]
-                        self.failed_boxes = loaded_state["failed_boxes"]
-                        print("已进入救援模式 状态：" + str(self.CURRENT_PHASE) + " 已完成：" + str(len(self.completed_ids)) + " 平台上剩余：" + str(len(self.grabbed_mails)) + "!")
+                        self.platform_state = loaded_state["platform_state"]
+                        print("已进入救援模式 已完成：" + str(len(self.completed_ids)) + " 平台上剩余：" + str(len(self.grabbed_mails)) + "!")
                     else:
                         print("状态数据加载失败，将从头开始新任务！")
                         self.resume_mode = False
@@ -224,103 +197,6 @@ class MainController: # 主控制器类
         else:
             print("未检测到历史状态数据，将从头开始新任务！")
 
-    def get_mail_id(self, mail): # 计算邮件唯一编号
-        # 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
-        if mail['positions_z'] == 1:
-            return mail['positions_x']
-        else:
-            return 10 + mail['positions_x']
-
-    def AutoSet(self): # 模拟拍照阶段 随机邮箱和邮件设置
-        self.mail_box.append({'box_id': "LU1", 'result': 1})
-        self.mail_box.append({'box_id': "LU2", 'result': 2})
-        self.mail_box.append({'box_id': "LD1", 'result': 3})
-        self.mail_box.append({'box_id': "LD2", 'result': 4})
-        self.mail_box.append({'box_id': "RU1", 'result': 5})
-        self.mail_box.append({'box_id': "RU2", 'result': 6})
-        self.mail_box.append({'box_id': "RD1", 'result': 7})
-        self.mail_box.append({'box_id': "RD2", 'result': 8})
-        
-        self.priority_provinces.append(1)
-        self.priority_provinces.append(2)
-        self.priority_provinces.append(3)
-        self.priority_provinces.append(4)
-        self.priority_provinces.append(5)
-        self.priority_provinces.append(6)
-        self.priority_provinces.append(7)
-        self.priority_provinces.append(8)
-
-        self.L_provinces.append(1)
-        self.L_provinces.append(2)
-        self.L_provinces.append(3)
-        self.L_provinces.append(4)
-        self.R_provinces.append(5)
-        self.R_provinces.append(6)
-        self.R_provinces.append(7)
-        self.R_provinces.append(8)
-        
-        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 1,})
-        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 2,})
-        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 3,})
-        self.mail_table.append({'results': 0,'positions_z': 1,'positions_x': 4,})
-        self.mail_table.append({'results': 1,'positions_z': 1,'positions_x': 5,})
-        self.mail_table.append({'results': 1,'positions_z': 1,'positions_x': 6,})
-        self.mail_table.append({'results': 2,'positions_z': 1,'positions_x': 7,})
-        self.mail_table.append({'results': 2,'positions_z': 1,'positions_x': 8,})
-        self.mail_table.append({'results': 3,'positions_z': 1,'positions_x': 9,})
-        self.mail_table.append({'results': 3,'positions_z': 1,'positions_x': 10,})
-
-        self.mail_table.append({'results': 4,'positions_z': 2,'positions_x': 1,})
-        self.mail_table.append({'results': 4,'positions_z': 2,'positions_x': 2,})
-        self.mail_table.append({'results': 5,'positions_z': 2,'positions_x': 3,})
-        self.mail_table.append({'results': 5,'positions_z': 2,'positions_x': 4,})
-        self.mail_table.append({'results': 6,'positions_z': 2,'positions_x': 5,})
-        self.mail_table.append({'results': 6,'positions_z': 2,'positions_x': 6,})
-        self.mail_table.append({'results': 7,'positions_z': 2,'positions_x': 7,})
-        self.mail_table.append({'results': 7,'positions_z': 2,'positions_x': 8,})
-        self.mail_table.append({'results': 8,'positions_z': 2,'positions_x': 9,})
-        self.mail_table.append({'results': 8,'positions_z': 2,'positions_x': 10,})
-
-        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 1,})
-        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 2,})
-        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 3,})
-        self.mail_table_L.append({'results': 0,'positions_z': 1,'positions_x': 4,})
-        self.mail_table_L.append({'results': 1,'positions_z': 1,'positions_x': 5,})
-        self.mail_table_R.append({'results': 1,'positions_z': 1,'positions_x': 6,})
-        self.mail_table_R.append({'results': 2,'positions_z': 1,'positions_x': 7,})
-        self.mail_table_R.append({'results': 2,'positions_z': 1,'positions_x': 8,})
-        self.mail_table_R.append({'results': 3,'positions_z': 1,'positions_x': 9,})
-        self.mail_table_R.append({'results': 3,'positions_z': 1,'positions_x': 10,})
-
-        self.mail_table_L.append({'results': 4,'positions_z': 2,'positions_x': 1,})
-        self.mail_table_L.append({'results': 4,'positions_z': 2,'positions_x': 2,})
-        self.mail_table_L.append({'results': 5,'positions_z': 2,'positions_x': 3,})
-        self.mail_table_L.append({'results': 5,'positions_z': 2,'positions_x': 4,})
-        self.mail_table_L.append({'results': 6,'positions_z': 2,'positions_x': 5,})
-        self.mail_table_R.append({'results': 6,'positions_z': 2,'positions_x': 6,})
-        self.mail_table_R.append({'results': 7,'positions_z': 2,'positions_x': 7,})
-        self.mail_table_R.append({'results': 7,'positions_z': 2,'positions_x': 8,})
-        self.mail_table_R.append({'results': 8,'positions_z': 2,'positions_x': 9,})
-        self.mail_table_R.append({'results': 8,'positions_z': 2,'positions_x': 10,})
-
-    def loadToDict(self, file_path, mode): # 导入相关参数
-        if mode == "pose":
-            dictionary = dict()
-            file = open(file_path, "r")
-            for line in file:
-                data = line.strip().split()
-                if len(data) == 5:
-                    key, px, py, qz, qw = data
-                    px, py, qz, qw = float(px), float(py), float(qz), float(qw)
-                    pose = Pose(Point(px, py, 0.0), Quaternion(0.0, 0.0, qz, qw))
-                    dictionary[key] = pose
-            file.close()
-            print("成功导入坐标参数！")
-            return dictionary
-        elif mode == "nav":
-            with open(file_path, 'r') as f:
-                return json.load(f)
-    
     def welcome(self): # 欢迎界面
         welcome_msg = [
             "  _   _         _      _   _   ",
@@ -348,6 +224,24 @@ class MainController: # 主控制器类
         ]
         for line in end_msg:
             print(line)
+
+    def loadToDict(self, file_path, mode): # 导入相关参数
+        if mode == "pose":
+            dictionary = dict()
+            file = open(file_path, "r")
+            for line in file:
+                data = line.strip().split()
+                if len(data) == 5:
+                    key, px, py, qz, qw = data
+                    px, py, qz, qw = float(px), float(py), float(qz), float(qw)
+                    pose = Pose(Point(px, py, 0.0), Quaternion(0.0, 0.0, qz, qw))
+                    dictionary[key] = pose
+            file.close()
+            print("成功导入坐标参数！")
+            return dictionary
+        elif mode == "nav":
+            with open(file_path, 'r') as f:
+                return json.load(f)
 
     def calibratePose(self, poseKey): # 校准位姿
         originalPose = PoseWithCovarianceStamped()
@@ -394,6 +288,14 @@ class MainController: # 主控制器类
         while not self.move_base_AS.wait_for_result():
             pass
 
+    def get_mail_id(self, mail): # 计算邮件唯一编号
+        # 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+        if mail['positions_z'] == 1:
+            return mail['positions_x']
+        else:
+            return 10 + mail['positions_x']
+
+class MainController(MainController): # 拍照服务类
     def takeboxPic_RU(self): # 邮箱文字识别[右上]
         self.navigate_posekey("ARU2")
         print("到达右上-左拍照点位!")
@@ -466,12 +368,7 @@ class MainController: # 主控制器类
                         'results': response.results[i],
                         'positions_z': response.positions_z[i],
                         'positions_x': response.positions_x[i],
-                    })
-                for i in range(4):
-                    self.mail_table_L.append({
-                        'results': response.results[i],
-                        'positions_z': response.positions_z[i],
-                        'positions_x': response.positions_x[i],
+                        'side': 'L',
                     })
             elif type == 5 or type == 6:
                 for i in range(4):
@@ -479,54 +376,33 @@ class MainController: # 主控制器类
                         'results': response.results[i],
                         'positions_z': response.positions_z[i],
                         'positions_x': response.positions_x[i],
-                    })
-                for i in range(4):
-                    self.mail_table_R.append({
-                        'results': response.results[i],
-                        'positions_z': response.positions_z[i],
-                        'positions_x': response.positions_x[i],
+                        'side': 'R',
                     })
             elif type == 3:
                 self.mail_table.append({
                     'results': response.results[0],
                     'positions_z': response.positions_z[0],
                     'positions_x': response.positions_x[0],
+                    'side': 'L',
                 })
                 self.mail_table.append({
                     'results': response.results[2],
                     'positions_z': response.positions_z[2],
                     'positions_x': response.positions_x[2],
-                })
-                self.mail_table_L.append({
-                    'results': response.results[0],
-                    'positions_z': response.positions_z[0],
-                    'positions_x': response.positions_x[0],
-                })
-                self.mail_table_L.append({
-                    'results': response.results[2],
-                    'positions_z': response.positions_z[2],
-                    'positions_x': response.positions_x[2],
+                    'side': 'L',
                 })
             elif type == 4:
                 self.mail_table.append({
                     'results': response.results[1],
                     'positions_z': response.positions_z[1],
                     'positions_x': response.positions_x[1],
+                    'side': 'R',
                 })
                 self.mail_table.append({
                     'results': response.results[3],
                     'positions_z': response.positions_z[3],
                     'positions_x': response.positions_x[3],
-                })
-                self.mail_table_R.append({
-                    'results': response.results[1],
-                    'positions_z': response.positions_z[1],
-                    'positions_x': response.positions_x[1],
-                })
-                self.mail_table_R.append({
-                    'results': response.results[3],
-                    'positions_z': response.positions_z[3],
-                    'positions_x': response.positions_x[3],
+                    'side': 'R',
                 })
         except rospy.ServiceException as e:
             print("货架拍照服务调用失败!")
@@ -539,13 +415,9 @@ class MainController: # 主控制器类
             if result in self.expected_provinces and result not in self.success_provinces:
                 self.mail_box.append({
                         'box_id': box_id,
-                        'result': result
+                        'result': result,
+                        'side': 'L' if box_id.startswith('L') else 'R',
                     })
-                self.priority_provinces.append(result)
-                if box_id == "LU1" or box_id == "LU2" or box_id == "LD1" or box_id == "LD2":
-                    self.L_provinces.append(response.result)
-                elif box_id == "RU1" or box_id == "RU2" or box_id == "RD1" or box_id == "RD2":
-                    self.R_provinces.append(response.result)
                 self.success_provinces.add(result)
             else:
                 self.failed_boxes.append(box_id)
@@ -554,33 +426,90 @@ class MainController: # 主控制器类
             print("邮箱拍照服务调用失败!")
         self.state_manager.save_state(self)
 
-    def grasp_mail(self, mail): # 抓取邮件
+    def handle_failed_boxes(self): # 处理失败的邮箱
+        missing_provinces = self.expected_provinces - self.success_provinces
+        missing_list = list(missing_provinces)
+        random.shuffle(missing_list)
+        for box_id, province in zip(self.failed_boxes, missing_list):
+            self.mail_box.append({'box_id': box_id, 'result': province, 'side': 'L' if box_id.startswith('L') else 'R'})
+            self.success_provinces.add(province)
+            print("失败的邮箱" + str(box_id) + "已被重新设置为省份编号" + str(province) + "!")
+
+class MainController(MainController): # 邮件处理类
+    def sort_mails_by_pairs(self, mails): # 对邮件列表重排序 邮件对在前邮件单在后
+        # 将邮件按省份分组
+        groups = defaultdict(list)
+        for mail in mails:
+            code = mail['results']
+            groups[code].append(mail)
+        
+        # 每个组都有邮件对和邮件单
+        paired_parts = []  # 邮件对
+        single_parts = []  # 邮件单
+
+        # 分开每个组的邮件对和邮件单
+        for code, mails in groups.items():
+            count = len(mails)
+            pair_count = count // 2 # 邮件对数目
+            total_paired = pair_count * 2 # 邮件对的邮件数
+            paired_parts.extend(mails[:total_paired]) # 邮件对
+            if count % 2 == 1: single_parts.extend(mails[total_paired:]) # 邮件单
+        return paired_parts + single_parts
+
+    def select_side(self, side): # 获得侧邮件 并根据邮件对邮件单排序
+        # 筛选side侧邮件
+        sidemails = [mail for mail in self.mail_table if mail['side'] == side]
+        # 筛选side侧和U侧邮箱
+        sideboxes = [box for box in self.mail_box if box['side'] == side or box['side'] == 'U']
+        # side侧邮件中属于sideboxes的邮件优先
+        side_provinces = [box['result'] for box in sideboxes]
+        on_side_mails = [mail for mail in sidemails if mail['results'] in side_provinces]
+        # 对邮件进行排序 邮件对在前邮件单在后
+        on_side_mails = self.sort_mails_by_pairs(on_side_mails)
+        return on_side_mails
+    
+    def select_non_side(self, side): # 获得跨邮件 side指货架侧 并根据邮件对邮件单排序
+        # 筛选side侧邮件
+        sidemails = [mail for mail in self.mail_table if mail['side'] == side]
+        # 筛选non_side侧邮箱
+        non_sideboxes = [box for box in self.mail_box if box['side'] != side and box['side'] != 'U']
+        # side侧邮件中属于non_sideboxes的邮件优先
+        non_side_provinces = [box['result'] for box in non_sideboxes]
+        non_side_mails = [mail for mail in sidemails if mail['results'] in non_side_provinces]
+        # 对邮件进行排序 邮件对在前邮件单在后
+        non_side_mails = self.sort_mails_by_pairs(non_side_mails)
+        return non_side_mails
+
+    def grasp_mail(self, mail): # 抓取单个邮件
+        self.state_manager.save_state(self) # 状态记录
         try:
+            # 导航到抓取点位
             self.navigate_posekey("CL" + str(mail['positions_x']))
+            # 执行抓取
             if mail['positions_z'] == 1 and self.platform_state == 0: # 上层抓到下层
                 response = self.photo_proxy(mail['positions_x'])
                 catch_type = [1, 0, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
-                self.platform_state = 1
             elif mail['positions_z'] == 1 and self.platform_state == 1: # 上层抓到上层
                 response = self.photo_proxy(mail['positions_x'])
                 catch_type = [1, 1, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
-                self.platform_state = 2
             elif mail['positions_z'] == 2 and self.platform_state == 0: # 下层抓到下层
                 response = self.photo_proxy(mail['positions_x']+10)
                 catch_type = [0, 0, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
-                self.platform_state = 1
             elif mail['positions_z'] == 2 and self.platform_state == 1: # 下层抓到上层
                 response = self.photo_proxy(mail['positions_x']+10)
                 catch_type = [0, 1, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
-                self.platform_state = 2
             else:
-                print("抓取邮件失败！")
+                print("抓取邮件时平台状态异常！")
                 return False
+            # 检查抓取结果 更新平台状态
             if response.success:
+                self.platform_state += 1 # 平台状态更新
+                self.grabbed_mails.append(mail) # 添加到已抓取邮件列表
+                self.state_manager.save_state(self) # 状态记录
                 return True
             else:
                 print("抓取邮件失败！")
@@ -588,126 +517,118 @@ class MainController: # 主控制器类
         except rospy.ServiceException as e:
             print("抓取服务调用失败！")
             return False
-        
-    def deliver_mails(self, mails): # 运送邮件
-        mails.reverse()
+
+    def throw_mail(self, mail): # 投递单个邮件
+        self.state_manager.save_state(self) # 状态记录
         try:
-            for mail in mails:
-                found = False
-                for box in self.mail_box:
-                    if box['result'] == mail['results']:
-                        print("省份编号" + str(mail['results']) + "的邮件正在运送到邮箱" + str(box['box_id']))
-                        self.navigate_posekey(box['box_id'])
-                        found = True
-                        break
-                if not found:
-                    print("未找到对应的邮箱，无法运送省份编号" + str(mail['results']) + "的邮件")
-                    print("省份编号" + str(mail['results']) + "的邮件将被丢弃到无效邮箱")
-                    self.navigate_posekey("U")
-                if self.platform_state == 2: # 上层
-                    throw_type = [1, 0]
-                    response = self.throw_proxy(*throw_type)
-                    self.platform_state = 1
-                elif self.platform_state == 1: # 下层
-                    throw_type = [0, 0]
-                    response = self.throw_proxy(*throw_type)
-                    self.platform_state = 0
-                if not response.success:
-                    print("运送邮件失败！")
-                    return False
-            return True
-        except rospy.ServiceException as e:
-            print("运送服务调用失败！")
-            return False
-        
-    def select_nearest_province(self, mail_table, priority_provinces):  # 对mail_table按照priority_provinces重新排序
-        flattened_mails = mail_table
-        priority_mails = [mail for mail in flattened_mails if mail['results'] in priority_provinces]
-        other_mails = [mail for mail in flattened_mails if mail['results'] not in priority_provinces]
-        sorted_mail_table = priority_mails + other_mails
-        return sorted_mail_table
-    
-    def process_priority_mails(self, mail_table, priority_provinces): # 处理优先省份邮件
-        grabbed_mails = []
-
-        for mail in mail_table:
-            mail_id = self.get_mail_id(mail)
-            if mail_id in self.completed_ids:  # 如果邮件已经完成，跳过
-                continue
-
-            if mail['results'] not in priority_provinces:
-                break
-
-            if self.grasp_mail(mail):
-                grabbed_mails.append(mail)
-
-                if len(grabbed_mails) >= 2:
-                    if self.deliver_mails(grabbed_mails):
-                        for m in grabbed_mails:
-                            self.completed_ids.add(self.get_mail_id(m))
-                        self.stage_manager.save_state(self) # 状态记录
-                    grabbed_mails = []
-
-        if grabbed_mails:
-            if self.deliver_mails(grabbed_mails):
-                for m in grabbed_mails:
-                    self.completed_ids.add(self.get_mail_id(m))
-                self.stage_manager.save_state(self) # 状态记录
-
-        return [m for m in mail_table if self.get_mail_id(m) not in self.completed_ids]
-
-    def process_non_priority_mails(self, mail_table): # 处理非优先省份邮件
-        grabbed_mails = []
-        for mail in mail_table:
-            mail_id = self.get_mail_id(mail)
-            if mail_id in self.completed_ids:  # 如果邮件已经完成，跳过
-                continue
-
-            if self.grasp_mail(mail):
-                grabbed_mails.append(mail)
-
-                if len(grabbed_mails) >= 2:
-                    if self.deliver_mails(grabbed_mails):
-                        for m in grabbed_mails:
-                            self.completed_ids.add(self.get_mail_id(m))
-                        self.state_manager.save_state(self) # 状态记录
-                    grabbed_mails = []
-
-        if grabbed_mails:
-            if self.deliver_mails(grabbed_mails):
-                for m in grabbed_mails:
-                    self.completed_ids.add(self.get_mail_id(m))
-                self.state_manager.save_state(self) # 状态记录
-
-    def handle_failed_boxes(self): # 处理失败的邮箱
-        missing_provinces = self.expected_provinces - self.success_provinces
-        missing_list = list(missing_provinces)
-        random.shuffle(missing_list)
-        for box_id, province in zip(self.failed_boxes, missing_list):
-            self.mail_box.append({'box_id': box_id, 'result': province})
-            self.priority_provinces.append(province)
-            if box_id in ["LU1", "LU2", "LD1", "LD2"]:
-                self.L_provinces.append(province)
+            # 导航到投递点位
+            found = False
+            for box in self.mail_box:
+                if box['result'] == mail['results']:
+                    print("省份编号" + str(mail['results']) + "的邮件正在运送到邮箱" + str(box['box_id']))
+                    self.navigate_posekey(box['box_id'])
+                    found = True
+                    break
+            if not found:
+                print("未找到对应的邮箱，无法运送省份编号" + str(mail['results']) + "的邮件")
+                print("省份编号" + str(mail['results']) + "的邮件将被丢弃到无效邮箱")
+                self.navigate_posekey("U")
+            # 执行投递
+            if self.platform_state == 2: # 上层
+                throw_type = [1, 0]
+                response = self.throw_proxy(*throw_type)
+            elif self.platform_state == 1: # 下层
+                throw_type = [0, 0]
+                response = self.throw_proxy(*throw_type)
             else:
-                self.R_provinces.append(province)
-            self.success_provinces.add(province)
-            print("失败的邮箱" + str(box_id) + "已被重新设置为省份编号" + str(province) + "!")
+                print("投递邮件时平台状态异常！")
+                return False
+            # 检查投递结果 更新平台状态
+            if response.success:
+                self.platform_state -= 1
+                self.grabbed_mails.pop(-1) # 从已抓取邮件列表中移除
+                self.completed_ids.add(self.get_mail_id(mail)) # 添加到已完成邮件编号集合
+                self.state_manager.save_state(self) # 状态记录
+                return True
+            else:
+                print("投递邮件失败！")
+                return False
+        except rospy.ServiceException as e:
+            print("投递服务调用失败！")
+            return False
 
+    def process_mails(self, mails): # 处理同区邮件
+        if not mails:  # 如果没有邮件直接返回
+            return
+        
+        for mail in mails: # 按顺序处理
+            if self.grasp_mail(mail): # 抓取邮件
+                if len(self.grabbed_mails) == 2:
+                    self.throw_mail(self.grabbed_mails[-1]) # 投递上层
+                    self.throw_mail(self.grabbed_mails[-1]) # 投递下层
+
+        if self.grabbed_mails:
+            self.throw_mail(self.grabbed_mails[-1]) # 投递下层
+
+    def process_non_side_mails(self, shelf_R, shelf_L): # 处理跨区邮件
+        if not shelf_R and not shelf_L:  # 如果没有跨区邮件直接返回
+            return
+
+        while shelf_L or shelf_R: # 交替抓取
+            if shelf_L: # 左侧货架
+                left_mails = shelf_L[:2]
+                for mail in left_mails:
+                    self.grasp_mail(mail)
+                    shelf_L.pop(0)
+                while self.grabbed_mails:
+                    self.throw_mail(self.grabbed_mails[-1])
+            
+            if shelf_R: # 右侧货架
+                right_mails = shelf_R[:2]
+                for mail in right_mails:
+                    self.grasp_mail(mail)
+                    shelf_R.pop(0)
+                while self.grabbed_mails:
+                    self.throw_mail(self.grabbed_mails[-1])
+
+    def resume_process_mails(self): # 恢复处理未完成的邮件
+        if not self.grabbed_mails: # 没有剩余邮件
+            self.platform_state = 0  # 重置平台状态
+            return
+        print("恢复处理未完成的邮件...")
+        # 处理已抓取但未投递的邮件
+        for mail in self.grabbed_mails:
+            if self.platform_state == 2:
+                if self.throw_mail(mail):
+                    print("已投递上层邮件 " + str(self.get_mail_id(mail)))
+            elif self.platform_state == 1:
+                if self.throw_mail(mail):
+                    print("已投递下层邮件 " + str(self.get_mail_id(mail)))
+            else:
+                print("平台状态异常，无法投递邮件 " + str(self.get_mail_id(mail)))
+        self.platform_state = 0 # 重置平台状态
+
+    def delete_completed_mails(self, mails): # 删除已完成的邮件并重排
+        # 删除已完成的邮件
+        completed_ids = self.completed_ids
+        new_mails = [mail for mail in mails if self.get_mail_id(mail) not in completed_ids]
+        # 重排邮件
+        new_mails = self.sort_mails_by_pairs(new_mails)
+        return new_mails
+
+class MainController(MainController): # 主控制器类
     def run(self):
+        # INIT
+        self.CURRENT_STATE = "INIT"
+        self.CURRENT_LOCATION = "INIT"
         self.welcome() # 欢迎界面 按下ENTER开始跑车
-
         self.calibratePose("start_left") # 校准起始位姿
 
-        self.CURRENT_LOCATION = "start_left"
-
-        self.mail_box.append({'box_id': "U",'result': 0}) # 无效箱子
-        self.priority_provinces.append(0) # 无效箱子优先
-        self.L_provinces.append(0) # 无效箱子优先
-        self.R_provinces.append(0) # 无效箱子优先
-
+        # PHOTO
         self.CURRENT_STATE = "PHOTO"
-
+        self.CURRENT_LOCATION = "start_left"
         if not self.resume_mode: # 救援模式不需要拍照
+            self.mail_box.append({'box_id': "U", 'result': 0, 'side': 'U'}) # 无效箱子
             self.takeboxPic_LD() # 邮箱拍照[左下]
             self.takeshelfPic_L() # 货架拍照[左侧]
             self.takeboxPic_LU() # 邮箱拍照[左上]
@@ -716,26 +637,43 @@ class MainController: # 主控制器类
             self.takeboxPic_RD() # 邮箱拍照[右下]
             self.handle_failed_boxes() # 处理失败的邮箱
         else:
-            self.CURRENT_STATE = "RUN"
-            print("救援模式已启用，跳过拍照阶段！")
-
+            print("救援模式已启用，跳过拍照环节！")
+            print("静态mail_box已获取！")
+            print("静态mail_table已获取！")
+            print("动态platform_state已获取！")
+            print("动态completed_ids已获取！")
+            print("动态grabbed_mails已获取！")
         self.navigate_posekey("start")
+
+        # RUN
         self.CURRENT_STATE = "RUN"
+        self.CURRENT_LOCATION = "start"
+        mail_table_RSRB = self.select_side('R') # 右右列表
+        mail_table_LSLB = self.select_side('L') # 左左列表
+        mail_table_RSLB = self.select_non_side('R') # 右架左箱列表
+        mail_table_LSRB = self.select_non_side('L') # 左架右箱列表
 
-        self.mail_table_R = self.select_nearest_province(self.mail_table_R, self.R_provinces) # 对mail_table按照priority_provinces重新排序
-        print("开始处理右侧优先省份邮件...")
-        self.mail_table_R = self.process_priority_mails(self.mail_table_R, self.R_provinces) # 处理右侧优先省份邮件
+        if self.resume_mode and self.platform_state != 0:
+            print("救援模式小车平台存在剩余邮件待处理！")
+            self.resume_process_mails() # 恢复处理未完成的邮件
+        
+        if self.resume_mode:
+            # 删除已完成的邮件并重排
+            mail_table_RSRB = self.delete_completed_mails(mail_table_RSRB)
+            mail_table_LSLB = self.delete_completed_mails(mail_table_LSLB)
+            mail_table_RSLB = self.delete_completed_mails(mail_table_RSLB)
+            mail_table_LSRB = self.delete_completed_mails(mail_table_LSRB)
 
-        self.mail_table_L = self.select_nearest_province(self.mail_table_L, self.L_provinces) # 对mail_table按照priority_provinces重新排序
-        print("开始处理左侧优先省份邮件...")
-        self.mail_table_L = self.process_priority_mails(self.mail_table_L, self.L_provinces) # 处理左侧优先省份邮件
+        print("开始处理右区邮件...")
+        self.process_mails(mail_table_RSRB)
 
-        self.mail_table = [] # 清空邮件列表
-        self.mail_table = self.mail_table_L + self.mail_table_R # 合并邮件列表
+        print("开始处理左区邮件...")
+        self.process_mails(mail_table_LSLB)
 
-        print("开始处理非优先省份邮件...")
-        self.process_non_priority_mails(self.mail_table) # 处理非优先省份邮件
+        print("开始处理跨区邮件...")
+        self.process_non_side_mails(shelf_R=mail_table_RSLB, shelf_L=mail_table_LSRB)
 
+        # END
         self.state_manager.clear_state() # 清除之前保存的状态
         self.end() # 结束界面
 
