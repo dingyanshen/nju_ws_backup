@@ -5,64 +5,179 @@
   
   "CL2": {
     "CL1": {"pre": [["forward", -0.15]]},
+    "CL1_UP": {"pre": [["forward", -0.15]]},
     "default": {}
   },
   
   "CL3": {
     "CL2": {"pre": [["forward", -0.15]]},
+    "CL2_UP": {"pre": [["forward", -0.15]]},
     "CL1": {"pre": [["forward", -0.3]]},
+    "CL1_UP": {"pre": [["forward", -0.3]]},
     "default": {}
   },
   
   "CL4": {
     "CL3": {"pre": [["forward", -0.15]]},
+    "CL3_UP": {"pre": [["forward", -0.15]]},
     "CL2": {"pre": [["forward", -0.3]]},
+    "CL2_UP": {"pre": [["forward", -0.3]]},
     "CL1": {"pre": [["forward", -0.45]]},
+    "CL1_UP": {"pre": [["forward", -0.45]]},
     "default": {}
   },
   
   "CL5": {
     "CL4": {"pre": [["forward", -0.15]]},
+    "CL4_UP": {"pre": [["forward", -0.15]]},
     "CL3": {"pre": [["forward", -0.3]]},
+    "CL3_UP": {"pre": [["forward", -0.3]]},
     "CL2": {"pre": [["forward", -0.45]]},
+    "CL2_UP": {"pre": [["forward", -0.45]]},
     "CL1": {"pre": [["forward", -0.6]]},
+    "CL1_UP": {"pre": [["forward", -0.6]]},
     "default": {}
   },
 
   "CL6": {
     "RD2": {},
     "CL7,CL8,CL9,CL10": {},
+    "CL7_UP,CL8_UP,CL9_UP,CL10_UP": {},
     "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "CL7": {
     "RD2": {},
     "CL8,CL9,CL10": {},
+    "CL8_UP,CL9_UP,CL10_UP": {},
     "CL6": {"pre": [["forward", -0.15]]},
+    "CL6_UP": {"pre": [["forward", -0.15]]},
     "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "CL8": {
     "RD2": {},
     "CL9,CL10": {},
+    "CL9_UP,CL10_UP": {},
     "CL7": {"pre": [["forward", -0.15]]},
+    "CL7_UP": {"pre": [["forward", -0.15]]},
     "CL6": {"pre": [["forward", -0.3]]},
+    "CL6_UP": {"pre": [["forward", -0.3]]},
     "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "CL9": {
     "CL10": {},
+    "CL10_UP": {},
     "CL8": {"pre": [["forward", -0.15]]},
+    "CL8_UP": {"pre": [["forward", -0.15]]},
     "CL7": {"pre": [["forward", -0.3]]},
+    "CL7_UP": {"pre": [["forward", -0.3]]},
     "CL6": {"pre": [["forward", -0.45]]},
+    "CL6_UP": {"pre": [["forward", -0.45]]},
     "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "CL10": {
     "CL9": {"pre": [["forward", -0.15]]},
+    "CL9_UP": {"pre": [["forward", -0.15]]},
     "CL8": {"pre": [["forward", -0.3]]},
+    "CL8_UP": {"pre": [["forward", -0.3]]},
     "CL7": {"pre": [["forward", -0.45]]},
+    "CL7_UP": {"pre": [["forward", -0.45]]},
     "CL6": {"pre": [["forward", -0.6]]},
+    "CL6_UP": {"pre": [["forward", -0.6]]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
+  },
+
+  "CL1_UP": {
+    "default": {}
+  },
+  
+  "CL2_UP": {
+    "CL1": {"pre": [["forward", -0.15]]},
+    "CL1_UP": {"pre": [["forward", -0.15]]},
+    "default": {}
+  },
+  
+  "CL3_UP": {
+    "CL2": {"pre": [["forward", -0.15]]},
+    "CL2_UP": {"pre": [["forward", -0.15]]},
+    "CL1": {"pre": [["forward", -0.3]]},
+    "CL1_UP": {"pre": [["forward", -0.3]]},
+    "default": {}
+  },
+  
+  "CL4_UP": {
+    "CL3": {"pre": [["forward", -0.15]]},
+    "CL3_UP": {"pre": [["forward", -0.15]]},
+    "CL2": {"pre": [["forward", -0.3]]},
+    "CL2_UP": {"pre": [["forward", -0.3]]},
+    "CL1": {"pre": [["forward", -0.45]]},
+    "CL1_UP": {"pre": [["forward", -0.45]]},
+    "default": {}
+  },
+  
+  "CL5_UP": {
+    "CL4": {"pre": [["forward", -0.15]]},
+    "CL4_UP": {"pre": [["forward", -0.15]]},
+    "CL3": {"pre": [["forward", -0.3]]},
+    "CL3_UP": {"pre": [["forward", -0.3]]},
+    "CL2": {"pre": [["forward", -0.45]]},
+    "CL2_UP": {"pre": [["forward", -0.45]]},
+    "CL1": {"pre": [["forward", -0.6]]},
+    "CL1_UP": {"pre": [["forward", -0.6]]},
+    "default": {}
+  },
+
+  "CL6_UP": {
+    "RD2": {},
+    "CL7,CL8,CL9,CL10": {},
+    "CL7_UP,CL8_UP,CL9_UP,CL10_UP": {},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
+  },
+  
+  "CL7_UP": {
+    "RD2": {},
+    "CL8,CL9,CL10": {},
+    "CL8_UP,CL9_UP,CL10_UP": {},
+    "CL6": {"pre": [["forward", -0.15]]},
+    "CL6_UP": {"pre": [["forward", -0.15]]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
+  },
+  
+  "CL8_UP": {
+    "RD2": {},
+    "CL9,CL10": {},
+    "CL9_UP,CL10_UP": {},
+    "CL7": {"pre": [["forward", -0.15]]},
+    "CL7_UP": {"pre": [["forward", -0.15]]},
+    "CL6": {"pre": [["forward", -0.3]]},
+    "CL6_UP": {"pre": [["forward", -0.3]]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
+  },
+  
+  "CL9_UP": {
+    "CL10": {},
+    "CL10_UP": {},
+    "CL8": {"pre": [["forward", -0.15]]},
+    "CL8_UP": {"pre": [["forward", -0.15]]},
+    "CL7": {"pre": [["forward", -0.3]]},
+    "CL7_UP": {"pre": [["forward", -0.3]]},
+    "CL6": {"pre": [["forward", -0.45]]},
+    "CL6_UP": {"pre": [["forward", -0.45]]},
+    "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
+  },
+  
+  "CL10_UP": {
+    "CL9": {"pre": [["forward", -0.15]]},
+    "CL9_UP": {"pre": [["forward", -0.15]]},
+    "CL8": {"pre": [["forward", -0.3]]},
+    "CL8_UP": {"pre": [["forward", -0.3]]},
+    "CL7": {"pre": [["forward", -0.45]]},
+    "CL7_UP": {"pre": [["forward", -0.45]]},
+    "CL6": {"pre": [["forward", -0.6]]},
+    "CL6_UP": {"pre": [["forward", -0.6]]},
     "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
 

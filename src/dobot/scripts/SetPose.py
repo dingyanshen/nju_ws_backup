@@ -17,7 +17,7 @@ if __name__ == '__main__':
     dobot.setTheta(0)
 
     while True:
-        choice = raw_input("请输入选择 p末端 t吸盘 s吸取 l释放 a解警 r复位 c1抓下层 c2抓上层 q退出：")
+        choice = raw_input("请输入选择 p末端 t吸盘 s吸取 l释放 a解警 r复位 c1抓下层 c2抓上层 d投掷 q退出：")
         if choice == "p":
             print("请输入末端位置坐标（空格隔开）：")
             pose = raw_input()
@@ -65,5 +65,19 @@ if __name__ == '__main__':
                 continue
             dobot.CatchUP(-10, error_x, error_y)
             print('抓取上层快递盒完成')
+        elif choice == "d":
+            print("请输入投掷类型（1-4）：")
+            type = raw_input()
+            if type == "1":
+                dobot.ThrowBox(0,0)
+            elif type == "2":
+                dobot.ThrowBox(0,1)
+            elif type == "3":
+                dobot.ThrowBox(1,0)
+            elif type == "4":
+                dobot.ThrowBox(1,1)
+            else:
+                print("输入错误，请重新输入")
+                continue
         elif choice == "q":
             break

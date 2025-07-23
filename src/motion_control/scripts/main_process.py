@@ -268,7 +268,7 @@ class MainController: # 基础功能类
         if self.CURRENT_STATE == "RUN":
             # 当前位置已经是目标位置
             if self.CURRENT_LOCATION == poseKey:
-                return
+                self._navigate_posekey(poseKey) # 无预处理和中间点
             # 匹配导航规则
             rule = NavigationRule._match_rule(self.CURRENT_LOCATION, poseKey, self.nav_rules)
             # 执行预处理
@@ -467,7 +467,7 @@ class MainController(MainController): # 邮件处理类
         # 对邮件进行排序 邮件对在前邮件单在后
         on_side_mails = self.sort_mails_by_pairs(on_side_mails)
         return on_side_mails
-    
+
     def select_non_side(self, side): # 获得跨邮件 side指货架侧 并根据邮件对邮件单排序
         # 筛选side侧邮件
         sidemails = [mail for mail in self.mail_table if mail['side'] == side]
@@ -484,22 +484,53 @@ class MainController(MainController): # 邮件处理类
         self.state_manager.save_state(self) # 状态记录
         try:
             # 导航到抓取点位
-            self.navigate_posekey("CL" + str(mail['positions_x']))
+            if mail['positions_z'] == 1: # 上层邮件
+                self.navigate_posekey("CL" + str(mail['positions_x']) + "_UP")
+            elif mail['positions_z'] == 2: # 下层邮件
+                self.navigate_posekey("CL" + str(mail['positions_x']))
             # 执行抓取
             if mail['positions_z'] == 1 and self.platform_state == 0: # 上层抓到下层
                 response = self.photo_proxy(mail['positions_x'])
+                if not self.is_safe_error(response.error_x, response.error_y):
+                    print("抓取邮件时误差超出安全范围！")
+                    self.retry_navigate_to_shelf("CL" + str(mail['positions_x']) + "_UP")
+                    response = self.photo_proxy(mail['positions_x'])
+                    if not self.is_safe_error(response.error_x, response.error_y):
+                        print("抓取邮件时误差仍超出安全范围，放弃抓取！")
+                        return False
                 catch_type = [1, 0, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             elif mail['positions_z'] == 1 and self.platform_state == 1: # 上层抓到上层
                 response = self.photo_proxy(mail['positions_x'])
+                if not self.is_safe_error(response.error_x, response.error_y):
+                    print("抓取邮件时误差超出安全范围！")
+                    self.retry_navigate_to_shelf("CL" + str(mail['positions_x']) + "_UP")
+                    response = self.photo_proxy(mail['positions_x'])
+                    if not self.is_safe_error(response.error_x, response.error_y):
+                        print("抓取邮件时误差仍超出安全范围，放弃抓取！")
+                        return False
                 catch_type = [1, 1, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             elif mail['positions_z'] == 2 and self.platform_state == 0: # 下层抓到下层
                 response = self.photo_proxy(mail['positions_x']+10)
+                if not self.is_safe_error(response.error_x, response.error_y):
+                    print("抓取邮件时误差超出安全范围！")
+                    self.retry_navigate_to_shelf("CL" + str(mail['positions_x']))
+                    response = self.photo_proxy(mail['positions_x']+10)
+                    if not self.is_safe_error(response.error_x, response.error_y):
+                        print("抓取邮件时误差仍超出安全范围，放弃抓取！")
+                        return False
                 catch_type = [0, 0, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             elif mail['positions_z'] == 2 and self.platform_state == 1: # 下层抓到上层
                 response = self.photo_proxy(mail['positions_x']+10)
+                if not self.is_safe_error(response.error_x, response.error_y):
+                    print("抓取邮件时误差超出安全范围！")
+                    self.retry_navigate_to_shelf("CL" + str(mail['positions_x']))
+                    response = self.photo_proxy(mail['positions_x']+10)
+                    if not self.is_safe_error(response.error_x, response.error_y):
+                        print("抓取邮件时误差仍超出安全范围，放弃抓取！")
+                        return False
                 catch_type = [0, 1, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             else:
@@ -561,14 +592,29 @@ class MainController(MainController): # 邮件处理类
         if not mails:  # 如果没有邮件直接返回
             return
         
-        for mail in mails: # 按顺序处理
-            if self.grasp_mail(mail): # 抓取邮件
+        remains = [] # 剩余邮件列表
+        
+        index = 0
+        while index < len(mails):
+            mail = mails[index] # 按顺序处理
+            if self.grasp_mail(mail): # 抓取邮件成功
                 if len(self.grabbed_mails) == 2:
                     self.throw_mail(self.grabbed_mails[-1]) # 投递上层
                     self.throw_mail(self.grabbed_mails[-1]) # 投递下层
+                index += 1
+            else: # 抓取失败
+                index += 1
+                if index >= len(mails): # 不存在下一个邮件
+                    break
+                else: # 存在下一个邮件
+                    next_mail = mails[index]
+                    remains.append(next_mail) # 将下一个邮件添加到剩余列表
+                    index += 1 # 跳过下一个邮件
 
         if self.grabbed_mails:
             self.throw_mail(self.grabbed_mails[-1]) # 投递下层
+
+        self.process_mails(remains) # 递归处理剩余邮件
 
     def process_non_side_mails(self, shelf_R, shelf_L): # 处理跨区邮件
         if not shelf_R and not shelf_L:  # 如果没有跨区邮件直接返回
@@ -597,16 +643,24 @@ class MainController(MainController): # 邮件处理类
             return
         print("恢复处理未完成的邮件...")
         # 处理已抓取但未投递的邮件
-        for mail in self.grabbed_mails:
+        while self.grabbed_mails:
+            mail = self.grabbed_mails[-1]
             if self.platform_state == 2:
                 if self.throw_mail(mail):
                     print("已投递上层邮件 " + str(self.get_mail_id(mail)))
+                else:
+                    break
             elif self.platform_state == 1:
                 if self.throw_mail(mail):
                     print("已投递下层邮件 " + str(self.get_mail_id(mail)))
+                else:
+                    break
             else:
                 print("平台状态异常，无法投递邮件 " + str(self.get_mail_id(mail)))
-        self.platform_state = 0 # 重置平台状态
+                break
+        # 所有邮件投递完成后重置平台状态
+        if not self.grabbed_mails:
+            self.platform_state = 0
 
     def delete_completed_mails(self, mails): # 删除已完成的邮件并重排
         # 删除已完成的邮件
@@ -615,6 +669,21 @@ class MainController(MainController): # 邮件处理类
         # 重排邮件
         new_mails = self.sort_mails_by_pairs(new_mails)
         return new_mails
+
+    def is_safe_error(self, error_x, error_y): # 判断误差是否在安全范围内
+        if error_x == error_y == 0: # 非真实误差也是不安全的
+            return False
+        # TODO: 如果误差超过安全范围则返回False
+        return True
+
+    def retry_navigate_to_shelf(self, posekey): # 重新尝试导航货架
+        if posekey in ["CL1", "CL2", "CL3", "CL4", "CL5", "CL1_UP", "CL2_UP", "CL3_UP", "CL4_UP", "CL5_UP"]:
+            self.BM.moveRotate(120) # 旋转到120度
+            self.BM.moveForward(-0.4) # 后退0.4米
+        elif posekey in ["CL6", "CL7", "CL8", "CL9", "CL10", "CL6_UP", "CL7_UP", "CL8_UP", "CL9_UP", "CL10_UP"]:
+            self.BM.moveRotate(-60) # 旋转到-60度
+            self.BM.moveForward(-0.4) # 后退0.4米
+        self.navigate_posekey(posekey) # 再次导航到货架点位
 
 class MainController(MainController): # 主控制器类
     def run(self):

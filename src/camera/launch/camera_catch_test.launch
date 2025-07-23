@@ -1,0 +1,5 @@
+<launch>
+    <group>
+    <node pkg="camera" type="camera_catch_test.py" name="photo_service" output="screen"/>
+    </group>
+</launch>
