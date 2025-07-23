@@ -66,8 +66,14 @@ class PhotoServiceNode:
             print("无法解析error.txt！")
             return PhotoServiceResponse(0, 0)
         try:
-            error_x = float(data[0])
-            error_y = float(data[1])
+            if mode in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]: # UP
+                error_x = float(data[0])
+                error_y = float(data[1])
+            elif mode in [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]: # DOWN
+                error_x = float(data[0])
+                error_y = float(data[1]) + 2.5 # 调整误差
+            else:
+                return PhotoServiceResponse(0, 0)
         except ValueError:
             print("error.txt中的数据格式错误！")
             return PhotoServiceResponse(0, 0)

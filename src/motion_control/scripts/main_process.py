@@ -8,6 +8,7 @@ import rospy
 import json
 import random
 import actionlib
+import math
 from collections import defaultdict
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion
 from actionlib_msgs.msg import *
@@ -269,6 +270,7 @@ class MainController: # 基础功能类
             # 当前位置已经是目标位置
             if self.CURRENT_LOCATION == poseKey:
                 self._navigate_posekey(poseKey) # 无预处理和中间点
+                return
             # 匹配导航规则
             rule = NavigationRule._match_rule(self.CURRENT_LOCATION, poseKey, self.nav_rules)
             # 执行预处理
@@ -491,44 +493,44 @@ class MainController(MainController): # 邮件处理类
             # 执行抓取
             if mail['positions_z'] == 1 and self.platform_state == 0: # 上层抓到下层
                 response = self.photo_proxy(mail['positions_x'])
-                if not self.is_safe_error(response.error_x, response.error_y):
+                if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
                     print("抓取邮件时误差超出安全范围！")
                     self.retry_navigate_to_shelf("CL" + str(mail['positions_x']) + "_UP")
                     response = self.photo_proxy(mail['positions_x'])
-                    if not self.is_safe_error(response.error_x, response.error_y):
+                    if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
                         print("抓取邮件时误差仍超出安全范围，放弃抓取！")
                         return False
                 catch_type = [1, 0, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             elif mail['positions_z'] == 1 and self.platform_state == 1: # 上层抓到上层
                 response = self.photo_proxy(mail['positions_x'])
-                if not self.is_safe_error(response.error_x, response.error_y):
+                if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
                     print("抓取邮件时误差超出安全范围！")
                     self.retry_navigate_to_shelf("CL" + str(mail['positions_x']) + "_UP")
                     response = self.photo_proxy(mail['positions_x'])
-                    if not self.is_safe_error(response.error_x, response.error_y):
+                    if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
                         print("抓取邮件时误差仍超出安全范围，放弃抓取！")
                         return False
                 catch_type = [1, 1, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             elif mail['positions_z'] == 2 and self.platform_state == 0: # 下层抓到下层
                 response = self.photo_proxy(mail['positions_x']+10)
-                if not self.is_safe_error(response.error_x, response.error_y):
+                if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
                     print("抓取邮件时误差超出安全范围！")
                     self.retry_navigate_to_shelf("CL" + str(mail['positions_x']))
                     response = self.photo_proxy(mail['positions_x']+10)
-                    if not self.is_safe_error(response.error_x, response.error_y):
+                    if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
                         print("抓取邮件时误差仍超出安全范围，放弃抓取！")
                         return False
                 catch_type = [0, 0, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             elif mail['positions_z'] == 2 and self.platform_state == 1: # 下层抓到上层
                 response = self.photo_proxy(mail['positions_x']+10)
-                if not self.is_safe_error(response.error_x, response.error_y):
+                if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
                     print("抓取邮件时误差超出安全范围！")
                     self.retry_navigate_to_shelf("CL" + str(mail['positions_x']))
                     response = self.photo_proxy(mail['positions_x']+10)
-                    if not self.is_safe_error(response.error_x, response.error_y):
+                    if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
                         print("抓取邮件时误差仍超出安全范围，放弃抓取！")
                         return False
                 catch_type = [0, 1, response.error_x, response.error_y]
@@ -670,10 +672,30 @@ class MainController(MainController): # 邮件处理类
         new_mails = self.sort_mails_by_pairs(new_mails)
         return new_mails
 
-    def is_safe_error(self, error_x, error_y): # 判断误差是否在安全范围内
+    def is_safe_error(self, error_x, error_y, mode): # 判断误差是否在安全范围内 外层约束
+
         if error_x == error_y == 0: # 非真实误差也是不安全的
             return False
-        # TODO: 如果误差超过安全范围则返回False
+        
+        # 左右直线约束
+        if abs(error_x) > 12.0:
+            return False
+        
+        # 下直线约束
+        if error_y < -8.0 and mode == 'UP':
+            return False
+        if error_y < -7.0 and mode == 'DOWN':
+            return False
+        
+        # 上圆弧约束
+        X = abs(error_x)
+        Y = abs(error_y + 26)
+        R = math.sqrt(X * X + Y * Y)
+        if R > 32.0 and mode == 'UP':
+            return False
+        if R > 34.0 and mode == 'DOWN':
+            return False
+        
         return True
 
     def retry_navigate_to_shelf(self, posekey): # 重新尝试导航货架

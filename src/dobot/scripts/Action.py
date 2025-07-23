@@ -148,7 +148,8 @@ class Dobot():
         self.SuctionCupClient.call(SuctionCupReq)
         return True
 
-    def safepose(self, x, y, z): #保证安全距离
+    def safepose(self, x, y, z): #保证安全距离 内层约束
+        # 上圆弧约束
         R = math.sqrt(x * x + y * y) # 机械臂半径
         if R >= 301 and z >= 100: # 高处半径过大
             print("过大半径：" + str(x) + " " + str(y))
@@ -225,19 +226,19 @@ class Dobot():
         # 此处传入的误差参数是已经判断可以抓取的安全误差参数
         # 此处为第二次限定 目的是将临边界外的点限制在安全范围内
         if mode == 'UP': # 上层
-            error_x = self.between(-10, error_x, 10) # 右移量限制在-10cm到10cm之间
-            error_y = self.between(-8.5, error_y, 2.1) # 伸展量限制在-8.5cm到2.1cm之间
+            error_x = self.between(-10.0, error_x, 10.0) # 右移量限制在-10cm到10cm之间
+            error_y = self.between(-6.5, error_y, 4.1) # 伸展量限制在-6.5cm到4.1cm之间
         elif mode == 'DOWN': # 下层
-            error_x = self.between(-10, error_x, 10) # 右移量限制在-10cm到10cm之间
-            error_y = self.between(-10, error_y, 1.5) # 伸展量限制在-10cm到1.5cm之间
+            error_x = self.between(-10.0, error_x, 10.0) # 右移量限制在-10cm到10cm之间
+            error_y = self.between(-5.5, error_y, 6.0) # 伸展量限制在-5.5cm到6.0cm之间
         error_x *= 10 # 右移量转换为mm
         error_y *= 10 # 伸展量转换为mm
         print("调整参数：" + str(error_x) + " " + str(error_y))
         return error_x, error_y
     
     def _calculate_rotation(self, error_x, error_y): #计算舵机旋转百分比 输入mm
-        max_stretch = math.atan2(300+error_y, 0+error_x) # 最大伸展 300mm
-        min_stretch = math.atan2(200+error_y, 0+error_x) # 最小伸展 200mm
+        max_stretch = math.atan2(300+error_y, 0+error_x) # 最大伸展大致 300mm
+        min_stretch = math.atan2(200+error_y, 0+error_x) # 最小伸展大致 200mm
         max_rotation = (math.degrees(max_stretch) + 90) / 180 # 最大伸展
         min_rotation = (math.degrees(min_stretch) + 90) / 180 # 最小伸展
         rotation = (max_rotation + min_rotation) / 2 # 平均伸展
@@ -249,7 +250,7 @@ class Dobot():
         rotation = self._calculate_rotation(error_x, error_y) # 计算舵机旋转百分比
 
         mail_x = error_x # 邮件右移 0mm
-        mail_y = 280 + error_y # 邮件伸展 280mm
+        mail_y = 260 + error_y # 邮件伸展 260mm
 
         # 舵机内缩
         self.setTheta(0)
@@ -289,7 +290,7 @@ class Dobot():
 
         # 达到平台高度
         self.setPose(250, 0, height, 0)
-        rospy.sleep(0.6)
+        rospy.sleep(0.8)
 
         # 释放
         self.releaseObject()
@@ -303,7 +304,7 @@ class Dobot():
         rotation = self._calculate_rotation(error_x, error_y) # 计算舵机旋转百分比
 
         mail_x = error_x # 邮件右移 0mm
-        mail_y = 305 + error_y # 邮件伸展 305mm
+        mail_y = 260 + error_y # 邮件伸展 260mm
         
         # 舵机内缩
         self.setTheta(0)
@@ -343,7 +344,7 @@ class Dobot():
 
         # 达到平台高度
         self.setPose(250, 0, height, 0)
-        rospy.sleep(0.6)
+        rospy.sleep(0.8)
 
         # 释放
         self.releaseObject()
