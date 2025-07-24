@@ -174,13 +174,13 @@ class Dobot():
         clientReq = SetIOPWMRequest()
         clientReq.address = 8
         clientReq.frequency = self.frequency
-        pwm = self.between(23.7, pwm, 100)
+        pwm = self.between(20.0, pwm, 100.0) # 20.0% ~ 100.0% 为安全限制
         clientReq.dutyCycle = pwm
         self.setIOPWMClient.call(clientReq)
         return True
     
     def setTheta(self, theta): #设置末端舵机角度百分比
-        self.setIOPWM((91-25)*theta+25)
+        self.setIOPWM(25.1 + (91.0 - 25.1) * theta) # 25.1% ~ 91.0% 为实际范围
         return True
 
     def CatchBox(self, shelf_z, pos_z, error_x, error_y): #抓取快递盒外层
