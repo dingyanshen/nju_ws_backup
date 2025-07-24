@@ -174,7 +174,7 @@ class Dobot():
         clientReq = SetIOPWMRequest()
         clientReq.address = 8
         clientReq.frequency = self.frequency
-        pwm = self.between(20.0, pwm, 100.0) # 20.0% ~ 100.0% 为安全限制
+        pwm = self.between(20.0, pwm, 100.0) # 20.0% ~ 100.0% 为安全限制范围
         clientReq.dutyCycle = pwm
         self.setIOPWMClient.call(clientReq)
         return True
