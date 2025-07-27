@@ -218,7 +218,12 @@ def box():
     #[box]接收快递箱拍照的图片路径，返回文字识别结果
     img = cv2.imread(message)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    results = reader.readtext(gray, detail=1, paragraph=False, text_threshold=0.35, low_text=0.15, link_threshold=0.1, contrast_ths=0.05, adjust_contrast=0.9, mag_ratio=1.0, add_margin=0.3, slope_ths=0.05, ycenter_ths=0.7, height_ths=0.7, width_ths=0.9)
+    # 预留参数
+    # detail=1, paragraph=False, text_threshold=0.35,
+    # low_text=0.15, link_threshold=0.1, contrast_ths=0.05,
+    # adjust_contrast=0.9, mag_ratio=1.0, add_margin=0.3,
+    # slope_ths=0.05, ycenter_ths=0.7, height_ths=0.7, width_ths=0.9
+    results = reader.readtext(gray)
     text_results = [result[1] for result in results]
     print("识别结果:", text_results)
     text_num = find_province_number(text_results, province_match, province_num)
@@ -337,16 +342,16 @@ if __name__ == "__main__":
     # 初始化省份兼容性匹配列表
 
     province_match = [# '江', '讧',
-                        '苏', '茆',
+                        '苏', '茆', '芴',
                       
                         '浙', '断', '祈',
                       # '江', '讧',
 
-                        '安', '女', '妄',
-                        '徽', '徵', '傲', '僦',
+                        '安', '女', '妄', '桉',
+                        '徽', '徵', '傲', '僦', '蔹',
 
                         '河',
-                      # '南',
+                      # '南', '雨',
 
                         '湖',
                       # '南',
@@ -355,22 +360,22 @@ if __name__ == "__main__":
                         '川',
                       
                         '广',
-                        '东',
+                        '东', '玄', '套',
 
-                        '福', '梅', '橱',
-                        '建', '处', '廷']
+                        '福', '梅', '橱', '橘',
+                        '建', '处', '廷', '迹',]
     
     province_num = [  # 1, 1,
-                        1, 1,
+                        1, 1, 1,
                     
                         2, 2, 2,
                       # 2, 2,
 
-                        3, 3, 3,
                         3, 3, 3, 3,
+                        3, 3, 3, 3, 3,
 
                         4,
-                      # 4,
+                      # 4, 4,
 
                         5,
                       # 5,
@@ -379,45 +384,54 @@ if __name__ == "__main__":
                         6,
 
                         7,
-                        7,
+                        7, 7, 7,
 
-                        8, 8, 8,
-                        8, 8, 8]
+                        8, 8, 8, 8,
+                        8, 8, 8, 8,]
     
     province_match_double = ['江苏', '讧苏',
                              '江茆', '讧茆',
+                             '江芴', '讧芴',
 
                              '浙江', '断江', '祈江',
                              '浙讧', '断讧', '祈讧',
 
-                             '安徽', '女徽', '妄徽',
-                             '安徵', '女徵', '妄徵',
-                             '安傲', '女傲', '妄傲',
-                             '安僦', '女僦', '妄僦',
+                             '安徽', '女徽', '妄徽', '桉徽',
+                             '安徵', '女徵', '妄徵', '桉徵',
+                             '安傲', '女傲', '妄傲', '桉傲',
+                             '安僦', '女僦', '妄僦', '桉僦',
+                             '安蔹', '女蔹', '妄蔹', '桉蔹',
 
                              '河南',
+                             '河雨',
 
                              '湖南',
 
                              '四川', '凹川',
 
                              '广东',
+                             '广玄',
+                             '广套',
 
-                             '福建', '梅建', '橱建',
-                             '福处', '梅处', '橱处',
-                             '福廷', '梅廷', '橱廷']
+                             '福建', '梅建', '橱建', '橘建',
+                             '福处', '梅处', '橱处', '橘处',
+                             '福廷', '梅廷', '橱廷', '橘廷',
+                             '福迹', '梅迹', '橱迹', '橘迹',]
     
     province_num_double = [1, 1,
+                           1, 1,
                            1, 1,
 
                            2, 2, 2,
                            2, 2, 2,
 
-                           3, 3, 3,
-                           3, 3, 3,
-                           3, 3, 3,
-                           3, 3, 3,
+                           3, 3, 3, 3,
+                           3, 3, 3, 3,
+                           3, 3, 3, 3,
+                           3, 3, 3, 3,
+                           3, 3, 3, 3,
 
+                           4,
                            4,
 
                            5,
@@ -425,10 +439,13 @@ if __name__ == "__main__":
                            6, 6,
 
                            7,
+                           7,
+                           7,
 
-                           8, 8, 8,
-                           8, 8, 8,
-                           8, 8, 8]
+                           8, 8, 8, 8,
+                           8, 8, 8, 8,
+                           8, 8, 8, 8,
+                           8, 8, 8, 8,]
     
     print("摄像头服务端已启动，等待处理图片...")
     while True:

@@ -170,34 +170,42 @@ class PhotoServiceNode:
         socket.send_string(response_qrcode_points_4)
         response_4 = socket.recv()
 
-        if(response_1 != response_qrcode_barcodes_1):
-            if response_1 == 0 and response_qrcode_barcodes_1 != 0:
-                response_1 = response_qrcode_barcodes_1
-            elif response_1 != 0 and response_qrcode_barcodes_1 == 0:
-                response_1 = response_1
-            else:
-                response_1 = 0
-        if(response_2 != response_qrcode_barcodes_2):
-            if response_2 == 0 and response_qrcode_barcodes_2 != 0:
-                response_2 = response_qrcode_barcodes_2
-            elif response_2 != 0 and response_qrcode_barcodes_2 == 0:
-                response_2 = response_2
-            else:
-                response_2 = 0
-        if(response_3 != response_qrcode_barcodes_3):
-            if response_3 == 0 and response_qrcode_barcodes_3 != 0:
-                response_3 = response_qrcode_barcodes_3
-            elif response_3 != 0 and response_qrcode_barcodes_3 == 0:
-                response_3 = response_3
-            else:
-                response_3 = 0
-        if(response_4 != response_qrcode_barcodes_4):
-            if response_4 == 0 and response_qrcode_barcodes_4 != 0:
-                response_4 = response_qrcode_barcodes_4
-            elif response_4 != 0 and response_qrcode_barcodes_4 == 0:
-                response_4 = response_4
-            else:
-                response_4 = 0
+        if(response_1 != response_qrcode_barcodes_1): # 二维码和文字识别结果不一致
+            if response_1 == '0' and response_qrcode_barcodes_1 != '0': # 文字失败 二维码成功
+                response_1 = response_qrcode_barcodes_1 # 以二维码结果为准
+                with open('/home/eaibot/nju_ws/src/camera/config/invalid.txt', 'a') as f:
+                    f.write("ul\n")
+            elif response_1 != '0' and response_qrcode_barcodes_1 == '0': # 二维码失败 文字成功
+                response_1 = response_1 # 以文字结果为准
+            else: # 二维码和文字都失败 或 二维码和文字都成功但不一致
+                response_1 = 0 # 无效
+        if(response_2 != response_qrcode_barcodes_2): # 二维码和文字识别结果不一致
+            if response_2 == '0' and response_qrcode_barcodes_2 != '0': # 文字失败 二维码成功
+                response_2 = response_qrcode_barcodes_2 # 以二维码结果为准
+                with open('/home/eaibot/nju_ws/src/camera/config/invalid.txt', 'a') as f:
+                    f.write("ur\n")
+            elif response_2 != '0' and response_qrcode_barcodes_2 == '0': # 二维码失败 文字成功
+                response_2 = response_2 # 以文字结果为准
+            else: # 二维码和文字都失败 或 二维码和文字都成功但不一致
+                response_2 = 0 # 无效
+        if(response_3 != response_qrcode_barcodes_3): # 二维码和文字识别结果不一致
+            if response_3 == '0' and response_qrcode_barcodes_3 != '0': # 文字失败 二维码成功
+                response_3 = response_qrcode_barcodes_3 # 以二维码结果为准
+                with open('/home/eaibot/nju_ws/src/camera/config/invalid.txt', 'a') as f:
+                    f.write("dl\n")
+            elif response_3 != '0' and response_qrcode_barcodes_3 == '0': # 二维码失败 文字成功
+                response_3 = response_3 # 以文字结果为准
+            else: # 二维码和文字都失败 或 二维码和文字都成功但不一致
+                response_3 = 0 # 无效
+        if(response_4 != response_qrcode_barcodes_4): # 二维码和文字识别结果不一致
+            if response_4 == '0' and response_qrcode_barcodes_4 != '0': # 文字失败 二维码成功
+                response_4 = response_qrcode_barcodes_4 # 以二维码结果为准
+                with open('/home/eaibot/nju_ws/src/camera/config/invalid.txt', 'a') as f:
+                    f.write("dr\n")
+            elif response_4 != '0' and response_qrcode_barcodes_4 == '0': # 二维码失败 文字成功
+                response_4 = response_4 # 以文字结果为准
+            else: # 二维码和文字都失败 或 二维码和文字都成功但不一致
+                response_4 = 0 # 无效
 
         num_province = ['无效', '江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
         print("左上角省份：" + num_province[int(response_1)])

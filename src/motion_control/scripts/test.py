@@ -1,6 +1,7 @@
 #! /usr/bin/env python2.7
 # -*- coding:utf-8 -*-
 
+import os
 import rospy
 import json
 import actionlib
@@ -141,7 +142,32 @@ class MainController:
 
     def test_photo_shelf(self, type):
         response = self.photo_shelf_proxy(type)
-        print(response)
+        _result_0 = response.results[0]
+        _result_1 = response.results[1]
+        _result_2 = response.results[2]
+        _result_3 = response.results[3]
+        # 无效处理
+        if os.path.exists('/home/eaibot/nju_ws/src/camera/config/invalid.txt'):
+            with open('/home/eaibot/nju_ws/src/camera/config/invalid.txt', 'r') as f:
+                lines = [line.strip() for line in f.readlines() if line.strip()]
+            if lines: # 如果有无效点位
+                print("检测到无效点位，正在处理...")
+                response_retry = self.photo_shelf_proxy(type)
+                # 根据无效点位更新结果
+                if 'ul' in lines:
+                    _result_0 = response_retry.results[0]
+                if 'ur' in lines:
+                    _result_1 = response_retry.results[1]
+                if 'dl' in lines:
+                    _result_2 = response_retry.results[2]
+                if 'dr' in lines:
+                    _result_3 = response_retry.results[3]
+            with open('/home/eaibot/nju_ws/src/camera/config/invalid.txt', 'w') as f:
+                f.write('')
+        print(_result_0)
+        print(_result_1)
+        print(_result_2)
+        print(_result_3)
 
     def test_photo_box(self):
         response = self.photo_box_proxy()
@@ -181,7 +207,7 @@ if __name__ == "__main__":
 
     while True:
         choice = raw_input("——————————————————————————————————————————————————————————————————————————————————\n" +
-                           "请输入选择 m状态 s拍货架 b拍邮箱 c抓取 t投递 n导航 z自转 p校准 l加载 q退出：")
+                           "请输入选择 m状态 s拍货架 b拍邮箱 c抓取 t投递 n导航 z自转 f直线 p校准 l加载 q退出：")
         if choice == "m":
             print("当前状态：" + controller.CURRENT_STATE)
             print("当前位置：" + controller.CURRENT_LOCATION)
@@ -229,11 +255,18 @@ if __name__ == "__main__":
             controller.navigate_posekey(poseKey)
         elif choice == "z":
             theta = raw_input("请输入自转角度：")
-            if not theta.isdigit():
+            if not theta.replace('-', '', 1).isdigit():
                 print("输入错误，请重新输入")
                 continue
             theta = float(theta)
             controller.BM.moveRotate(theta)
+        elif choice == "f":
+            distance = raw_input("请输入直线距离：")
+            if not distance.replace('-', '', 1).isdigit():
+                print("输入错误，请重新输入")
+                continue
+            distance = float(distance)
+            controller.BM.moveForward(distance)
         elif choice == "p":
             poseKey = raw_input("请输入校准位置：")
             if poseKey not in controller.position:

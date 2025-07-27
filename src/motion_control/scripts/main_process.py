@@ -170,6 +170,9 @@ class MainController: # 基础功能类
         self.resume_mode = False # 是否为救援模式
         self.check_rescue_mode() # 检查救援模式
 
+        # 延后邮件
+        self.delayed_mails = []
+
     def check_rescue_mode(self): # 检查救援模式
         # 检查状态文件是否存在
         if os.path.exists(self.state_manager.save_path):
@@ -269,8 +272,11 @@ class MainController: # 基础功能类
         if self.CURRENT_STATE == "RUN":
             # 当前位置已经是目标位置
             if self.CURRENT_LOCATION == poseKey:
-                self._navigate_posekey(poseKey) # 无预处理和中间点
-                return
+                if poseKey in ["RU1", "RU2", "RD1", "RD2", "LU1", "LU2", "LD1", "LD2", "U"]: # 邮箱投掷点
+                    return # 提高效率 无需重复导航
+                else: # 其他位置
+                    self._navigate_posekey(poseKey) # 直接导航到目标位置
+                    return
             # 匹配导航规则
             rule = NavigationRule._match_rule(self.CURRENT_LOCATION, poseKey, self.nav_rules)
             # 执行预处理
@@ -364,10 +370,33 @@ class MainController(MainController): # 拍照服务类
     def process_shelf(self, type): # 货架拍照服务
         try:
             response = self.photo_shelf_proxy(type)
+            _result_0 = response.results[0]
+            _result_1 = response.results[1]
+            _result_2 = response.results[2]
+            _result_3 = response.results[3]
+            # 无效处理
+            if os.path.exists('/home/eaibot/nju_ws/src/camera/config/invalid.txt'):
+                with open('/home/eaibot/nju_ws/src/camera/config/invalid.txt', 'r') as f:
+                    lines = [line.strip() for line in f.readlines() if line.strip()]
+                if lines: # 如果有无效点位
+                    print("检测到无效点位，正在处理...")
+                    response_retry = self.photo_shelf_proxy(type)
+                    # 根据无效点位更新结果
+                    if 'ul' in lines:
+                        _result_0 = response_retry.results[0]
+                    if 'ur' in lines:
+                        _result_1 = response_retry.results[1]
+                    if 'dl' in lines:
+                        _result_2 = response_retry.results[2]
+                    if 'dr' in lines:
+                        _result_3 = response_retry.results[3]
+                with open('/home/eaibot/nju_ws/src/camera/config/invalid.txt', 'w') as f:
+                    f.write('')
+
             if type == 1 or type == 2:
                 for i in range(4):
                     self.mail_table.append({
-                        'results': response.results[i],
+                        'results': _result_0 if i == 0 else _result_1 if i == 1 else _result_2 if i == 2 else _result_3,
                         'positions_z': response.positions_z[i],
                         'positions_x': response.positions_x[i],
                         'side': 'L',
@@ -375,33 +404,33 @@ class MainController(MainController): # 拍照服务类
             elif type == 5 or type == 6:
                 for i in range(4):
                     self.mail_table.append({
-                        'results': response.results[i],
+                        'results': _result_0 if i == 0 else _result_1 if i == 1 else _result_2 if i == 2 else _result_3,
                         'positions_z': response.positions_z[i],
                         'positions_x': response.positions_x[i],
                         'side': 'R',
                     })
             elif type == 3:
                 self.mail_table.append({
-                    'results': response.results[0],
+                    'results': _result_0,
                     'positions_z': response.positions_z[0],
                     'positions_x': response.positions_x[0],
                     'side': 'L',
                 })
                 self.mail_table.append({
-                    'results': response.results[2],
+                    'results': _result_2,
                     'positions_z': response.positions_z[2],
                     'positions_x': response.positions_x[2],
                     'side': 'L',
                 })
             elif type == 4:
                 self.mail_table.append({
-                    'results': response.results[1],
+                    'results': _result_1,
                     'positions_z': response.positions_z[1],
                     'positions_x': response.positions_x[1],
                     'side': 'R',
                 })
                 self.mail_table.append({
-                    'results': response.results[3],
+                    'results': _result_3,
                     'positions_z': response.positions_z[3],
                     'positions_x': response.positions_x[3],
                     'side': 'R',
@@ -422,11 +451,40 @@ class MainController(MainController): # 拍照服务类
                     })
                 self.success_provinces.add(result)
             else:
-                self.failed_boxes.append(box_id)
-                print("邮箱识别无效或重复!")
+                self.box_retry_move() # 重试移动
+                print("邮箱第一次重试移动...")
+                response = self.photo_box_proxy()
+                result = response.result
+                if result in self.expected_provinces and result not in self.success_provinces:
+                    self.mail_box.append({
+                        'box_id': box_id,
+                        'result': result,
+                        'side': 'L' if box_id.startswith('L') else 'R',
+                    })
+                    self.success_provinces.add(result)
+                else:
+                    self.box_retry_move() # 再次重试移动
+                    print("邮箱第二次重试移动...")
+                    response = self.photo_box_proxy()
+                    result = response.result
+                    if result in self.expected_provinces and result not in self.success_provinces:
+                        self.mail_box.append({
+                            'box_id': box_id,
+                            'result': result,
+                            'side': 'L' if box_id.startswith('L') else 'R',
+                        })
+                        self.success_provinces.add(result)
+                    else:
+                        self.failed_boxes.append(box_id)
+                        print("经过两次重试移动后，邮箱仍未识别成功，记录为失败或重复邮箱！")
         except rospy.ServiceException as e:
             print("邮箱拍照服务调用失败!")
         self.state_manager.save_state(self)
+
+    def box_retry_move(self): # 邮箱重试移动
+        self.BM.moveForward(-0.15)
+        rospy.sleep(0.5)
+        self.BM.moveForward(0.15)
 
     def handle_failed_boxes(self): # 处理失败的邮箱
         missing_provinces = self.expected_provinces - self.success_provinces
@@ -494,45 +552,65 @@ class MainController(MainController): # 邮件处理类
             if mail['positions_z'] == 1 and self.platform_state == 0: # 上层抓到下层
                 response = self.photo_proxy(mail['positions_x'])
                 if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
-                    print("抓取邮件时误差超出安全范围！")
+                    print("第一次抓取邮件时误差超出安全范围！")
                     self.retry_navigate_to_shelf("CL" + str(mail['positions_x']) + "_UP")
                     response = self.photo_proxy(mail['positions_x'])
                     if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
-                        print("抓取邮件时误差仍超出安全范围，放弃抓取！")
-                        return False
+                        print("第二次抓取邮件时误差超出安全范围！")
+                        self.retry_navigate_to_shelf("CL" + str(mail['positions_x']) + "_UP")
+                        response = self.photo_proxy(mail['positions_x'])
+                        if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
+                            print("第三次抓取邮件时误差仍超出安全范围，放弃抓取，将邮件延后处理！")
+                            self.delayed_mails.append(mail) # 添加到延后处理列表
+                            return False
                 catch_type = [1, 0, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             elif mail['positions_z'] == 1 and self.platform_state == 1: # 上层抓到上层
                 response = self.photo_proxy(mail['positions_x'])
                 if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
-                    print("抓取邮件时误差超出安全范围！")
+                    print("第一次抓取邮件时误差超出安全范围！")
                     self.retry_navigate_to_shelf("CL" + str(mail['positions_x']) + "_UP")
                     response = self.photo_proxy(mail['positions_x'])
                     if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
-                        print("抓取邮件时误差仍超出安全范围，放弃抓取！")
-                        return False
+                        print("第二次抓取邮件时误差超出安全范围！")
+                        self.retry_navigate_to_shelf("CL" + str(mail['positions_x']) + "_UP")
+                        response = self.photo_proxy(mail['positions_x'])
+                        if not self.is_safe_error(response.error_x, response.error_y, mode='UP'):
+                            print("第三次抓取邮件时误差仍超出安全范围，放弃抓取，将邮件延后处理！")
+                            self.delayed_mails.append(mail) # 添加到延后处理列表
+                            return False
                 catch_type = [1, 1, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             elif mail['positions_z'] == 2 and self.platform_state == 0: # 下层抓到下层
                 response = self.photo_proxy(mail['positions_x']+10)
                 if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
-                    print("抓取邮件时误差超出安全范围！")
+                    print("第一次抓取邮件时误差超出安全范围！")
                     self.retry_navigate_to_shelf("CL" + str(mail['positions_x']))
                     response = self.photo_proxy(mail['positions_x']+10)
                     if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
-                        print("抓取邮件时误差仍超出安全范围，放弃抓取！")
-                        return False
+                        print("第二次抓取邮件时误差超出安全范围！")
+                        self.retry_navigate_to_shelf("CL" + str(mail['positions_x']))
+                        response = self.photo_proxy(mail['positions_x']+10)
+                        if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
+                            print("第三次抓取邮件时误差仍超出安全范围，放弃抓取，将邮件延后处理！")
+                            self.delayed_mails.append(mail) # 添加到延后处理列表
+                            return False
                 catch_type = [0, 0, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             elif mail['positions_z'] == 2 and self.platform_state == 1: # 下层抓到上层
                 response = self.photo_proxy(mail['positions_x']+10)
                 if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
-                    print("抓取邮件时误差超出安全范围！")
+                    print("第一次抓取邮件时误差超出安全范围！")
                     self.retry_navigate_to_shelf("CL" + str(mail['positions_x']))
                     response = self.photo_proxy(mail['positions_x']+10)
                     if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
-                        print("抓取邮件时误差仍超出安全范围，放弃抓取！")
-                        return False
+                        print("第二次抓取邮件时误差超出安全范围！")
+                        self.retry_navigate_to_shelf("CL" + str(mail['positions_x']))
+                        response = self.photo_proxy(mail['positions_x']+10)
+                        if not self.is_safe_error(response.error_x, response.error_y, mode='DOWN'):
+                            print("第三次抓取邮件时误差仍超出安全范围，放弃抓取，将邮件延后处理！")
+                            self.delayed_mails.append(mail) # 添加到延后处理列表
+                            return False
                 catch_type = [0, 1, response.error_x, response.error_y]
                 response = self.grasp_proxy(*catch_type)
             else:
@@ -618,6 +696,12 @@ class MainController(MainController): # 邮件处理类
 
         self.process_mails(remains) # 递归处理剩余邮件
 
+    def process_delayed_mails(self): # 处理延后邮件循环
+        while self.delayed_mails: # 只要有延后邮件就处理
+            mail = self.delayed_mails.pop(0) # 取出第一个延后邮件
+            if self.grasp_mail(mail): # 抓取邮件成功
+                self.throw_mail(self.grabbed_mails[-1]) # 投递下层
+
     def process_non_side_mails(self, shelf_R, shelf_L): # 处理跨区邮件
         if not shelf_R and not shelf_L:  # 如果没有跨区邮件直接返回
             return
@@ -674,26 +758,26 @@ class MainController(MainController): # 邮件处理类
 
     def is_safe_error(self, error_x, error_y, mode): # 判断误差是否在安全范围内 外层约束
 
-        if error_x == error_y == 0: # 非真实误差也是不安全的
+        if error_x == 0: # 非真实误差也是不安全的
             return False
         
         # 左右直线约束
-        if abs(error_x) > 12.0:
+        if abs(error_x) > 11.0:
             return False
         
         # 下直线约束
-        if error_y < -8.0 and mode == 'UP':
+        if error_y < -7.5 and mode == 'UP':
             return False
-        if error_y < -7.0 and mode == 'DOWN':
+        if error_y < -6.5 and mode == 'DOWN':
             return False
         
         # 上圆弧约束
         X = abs(error_x)
         Y = abs(error_y + 26)
         R = math.sqrt(X * X + Y * Y)
-        if R > 32.0 and mode == 'UP':
+        if R > 31.0 and mode == 'UP':
             return False
-        if R > 34.0 and mode == 'DOWN':
+        if R > 33.0 and mode == 'DOWN':
             return False
         
         return True
@@ -763,6 +847,9 @@ class MainController(MainController): # 主控制器类
 
         print("开始处理跨区邮件...")
         self.process_non_side_mails(shelf_R=mail_table_RSLB, shelf_L=mail_table_LSRB)
+
+        print("开始处理延后邮件...")
+        self.process_delayed_mails()
 
         # END
         self.state_manager.clear_state() # 清除之前保存的状态

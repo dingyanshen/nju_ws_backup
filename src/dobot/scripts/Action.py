@@ -252,6 +252,9 @@ class Dobot():
         mail_x = error_x # 邮件右移 0mm
         mail_y = 260 + error_y # 邮件伸展 260mm
 
+        # 抬到默认位
+        self.setPose(250, 0, -10, 0)
+
         # 舵机内缩
         self.setTheta(0)
         rospy.sleep(0.1)
@@ -296,6 +299,9 @@ class Dobot():
         self.releaseObject()
         rospy.sleep(0.1)
 
+        # 抓取完防滑下压
+        self.setPose(250, 0, height-17, 0)
+
         return True
   
     def CatchDOWN(self, height, error_x, error_y):
@@ -305,6 +311,9 @@ class Dobot():
 
         mail_x = error_x # 邮件右移 0mm
         mail_y = 260 + error_y # 邮件伸展 260mm
+
+        # 抬到默认位
+        self.setPose(250, 0, -10, 0)
         
         # 舵机内缩
         self.setTheta(0)
@@ -350,14 +359,18 @@ class Dobot():
         self.releaseObject()
         rospy.sleep(0.1)
 
+        # 抓取完防滑下压
+        self.setPose(250, 0, height-17, 0)
+
         return True
 
     def Throw(self, dir, height): #投掷快递盒
 
-        # 舵机内缩 达到高度
+        # 抬到默认位
+        self.setPose(250, 0, -10, 0)
+
+        # 舵机内缩
         self.setTheta(0)
-        rospy.sleep(0.1)
-        self.setPose(250, 0, height+30, 0)
         rospy.sleep(0.1)
 
         # 下压 吸取
@@ -366,7 +379,7 @@ class Dobot():
         rospy.sleep(0.3)
 
         # 抬起
-        self.setPose(250, 0, height+30, 0)
+        self.setPose(250, 0, height+20, 0)
         rospy.sleep(0.1)
 
         # 舵机外伸 转向邮箱
@@ -378,10 +391,13 @@ class Dobot():
         self.releaseObject()
         rospy.sleep(0.4)
 
-        # 舵机内缩 回到初始位置
+        # 舵机内缩 回到默认位
         self.setTheta(0)
         rospy.sleep(0.1)
-        self.setPose(250, 0, 0, 0)
+        self.setPose(250, 0, -10, 0)
+
+        # 投掷完防滑下压 只有投掷上层邮件后需要 投掷下层邮件不需要
+        self.setPose(250, 0, -57, 0)
         
         return True
     
