@@ -1,15 +1,18 @@
 {
   "CL1": {
+    "CL1_UP": {},
     "default": {}
   },
   
   "CL2": {
+    "CL2_UP": {},
     "CL1": {"pre": [["forward", -0.15]]},
     "CL1_UP": {"pre": [["forward", -0.15]]},
     "default": {}
   },
   
   "CL3": {
+    "CL3_UP": {},
     "CL2": {"pre": [["forward", -0.15]]},
     "CL2_UP": {"pre": [["forward", -0.15]]},
     "CL1": {"pre": [["forward", -0.3]]},
@@ -18,6 +21,7 @@
   },
   
   "CL4": {
+    "CL4_UP": {},
     "CL3": {"pre": [["forward", -0.15]]},
     "CL3_UP": {"pre": [["forward", -0.15]]},
     "CL2": {"pre": [["forward", -0.3]]},
@@ -28,6 +32,7 @@
   },
   
   "CL5": {
+    "CL5_UP": {},
     "CL4": {"pre": [["forward", -0.15]]},
     "CL4_UP": {"pre": [["forward", -0.15]]},
     "CL3": {"pre": [["forward", -0.3]]},
@@ -40,6 +45,7 @@
   },
 
   "CL6": {
+    "CL6_UP": {},
     "RD2": {},
     "CL7,CL8,CL9,CL10": {},
     "CL7_UP,CL8_UP,CL9_UP,CL10_UP": {},
@@ -47,6 +53,7 @@
   },
   
   "CL7": {
+    "CL7_UP": {},
     "RD2": {},
     "CL8,CL9,CL10": {},
     "CL8_UP,CL9_UP,CL10_UP": {},
@@ -56,6 +63,7 @@
   },
   
   "CL8": {
+    "CL8_UP": {},
     "RD2": {},
     "CL9,CL10": {},
     "CL9_UP,CL10_UP": {},
@@ -67,6 +75,7 @@
   },
   
   "CL9": {
+    "CL9_UP": {},
     "CL10": {},
     "CL10_UP": {},
     "CL8": {"pre": [["forward", -0.15]]},
@@ -79,6 +88,7 @@
   },
   
   "CL10": {
+    "CL10_UP": {},
     "CL9": {"pre": [["forward", -0.15]]},
     "CL9_UP": {"pre": [["forward", -0.15]]},
     "CL8": {"pre": [["forward", -0.3]]},
@@ -91,16 +101,19 @@
   },
 
   "CL1_UP": {
+    "CL1": {},
     "default": {}
   },
   
   "CL2_UP": {
+    "CL2": {},
     "CL1": {"pre": [["forward", -0.15]]},
     "CL1_UP": {"pre": [["forward", -0.15]]},
     "default": {}
   },
   
   "CL3_UP": {
+    "CL3": {},
     "CL2": {"pre": [["forward", -0.15]]},
     "CL2_UP": {"pre": [["forward", -0.15]]},
     "CL1": {"pre": [["forward", -0.3]]},
@@ -109,6 +122,7 @@
   },
   
   "CL4_UP": {
+    "CL4": {},
     "CL3": {"pre": [["forward", -0.15]]},
     "CL3_UP": {"pre": [["forward", -0.15]]},
     "CL2": {"pre": [["forward", -0.3]]},
@@ -119,6 +133,7 @@
   },
   
   "CL5_UP": {
+    "CL5": {},
     "CL4": {"pre": [["forward", -0.15]]},
     "CL4_UP": {"pre": [["forward", -0.15]]},
     "CL3": {"pre": [["forward", -0.3]]},
@@ -131,6 +146,7 @@
   },
 
   "CL6_UP": {
+    "CL6": {},
     "RD2": {},
     "CL7,CL8,CL9,CL10": {},
     "CL7_UP,CL8_UP,CL9_UP,CL10_UP": {},
@@ -138,6 +154,7 @@
   },
   
   "CL7_UP": {
+    "CL7": {},
     "RD2": {},
     "CL8,CL9,CL10": {},
     "CL8_UP,CL9_UP,CL10_UP": {},
@@ -147,6 +164,7 @@
   },
   
   "CL8_UP": {
+    "CL8": {},
     "RD2": {},
     "CL9,CL10": {},
     "CL9_UP,CL10_UP": {},
@@ -158,6 +176,7 @@
   },
   
   "CL9_UP": {
+    "CL9": {},
     "CL10": {},
     "CL10_UP": {},
     "CL8": {"pre": [["forward", -0.15]]},
@@ -170,6 +189,7 @@
   },
   
   "CL10_UP": {
+    "CL10": {},
     "CL9": {"pre": [["forward", -0.15]]},
     "CL9_UP": {"pre": [["forward", -0.15]]},
     "CL8": {"pre": [["forward", -0.3]]},
@@ -182,32 +202,32 @@
   },
 
   "LD1": {
-    "CL6,CL7,CL8,CL9,CL10,RD1,RD2": {"pre": [["rotate", 45], ["forward", -0.15]], "waypoints": ["start"]},
+    "CL6,CL7,CL8,CL9,CL10,CL6_UP,CL7_UP,CL8_UP,CL9_UP,CL10_UP,RD1,RD2": {"pre": [["rotate", 45], ["forward", -0.15]], "waypoints": ["start"]},
     "LD2": {},
     "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
   
   "LD2": {
-    "CL6,CL7,CL8,CL9,CL10,RD1,RD2": {"pre": [["rotate", 45], ["forward", -0.15]], "waypoints": ["start"]},
+    "CL6,CL7,CL8,CL9,CL10,CL6_UP,CL7_UP,CL8_UP,CL9_UP,CL10_UP,RD1,RD2": {"pre": [["rotate", 45], ["forward", -0.15]], "waypoints": ["start"]},
     "default": {"pre": [["rotate", 45], ["forward", -0.15]]}
   },
 
   "LU1": {
-    "LU2,U,RU2,RU1,RD1,RD2,CL6,CL7,CL8,CL9,CL10": {},
-    "CL1,CL2,CL3,CL4,CL5": {"pre": [["rotate", 135], ["forward", -0.3]]},
+    "LU2,U,RU2,RU1,RD1,RD2,CL6,CL7,CL8,CL9,CL10,CL6_UP,CL7_UP,CL8_UP,CL9_UP,CL10_UP": {},
+    "CL1,CL2,CL3,CL4,CL5,CL1_UP,CL2_UP,CL3_UP,CL4_UP,CL5_UP": {"pre": [["rotate", 135], ["forward", -0.3]]},
     "default": {"pre": [["rotate", 90], ["forward", -0.15]]}
   },
   
   "LU2": {
-    "U,RU2,RU1,RD1,RD2,CL6,CL7,CL8,CL9,CL10": {},
+    "U,RU2,RU1,RD1,RD2,CL6,CL7,CL8,CL9,CL10,CL6_UP,CL7_UP,CL8_UP,CL9_UP,CL10_UP": {},
     "LU1": {"pre": [["forward", -0.6]]},
-    "CL1,CL2,CL3,CL4,CL5": {"pre": [["rotate", 135], ["forward", -0.3]]},
+    "CL1,CL2,CL3,CL4,CL5,CL1_UP,CL2_UP,CL3_UP,CL4_UP,CL5_UP": {"pre": [["rotate", 135], ["forward", -0.3]]},
     "LD1,LD2": {"pre": [["rotate", 135], ["forward", -0.1]]},
     "default": {"pre": [["rotate", 90], ["forward", -0.15]]}
   },
 
   "U": {
-    "RU2,RU1,RD1,RD2,CL6,CL7,CL8,CL9,CL10": {},
+    "RU2,RU1,RD1,RD2,CL6,CL7,CL8,CL9,CL10,CL6_UP,CL7_UP,CL8_UP,CL9_UP,CL10_UP": {},
     "LU2": {"pre": [["forward", -0.6]]},
     "LU1": {"pre": [["rotate", 80], ["forward", -0.3]]},
     "default": {"pre": [["rotate", 45], ["forward", -0.2]]}
@@ -216,10 +236,10 @@
   "RU2": {
     "RU1": {},
     "U": {"pre": [["forward", -0.6]]},
-    "LU1,LU2,CL1,CL2,CL3,CL4,CL5": {"pre": [["rotate", 80], ["forward", -0.3]]},
+    "LU1,LU2,CL1,CL2,CL3,CL4,CL5,CL1_UP,CL2_UP,CL3_UP,CL4_UP,CL5_UP": {"pre": [["rotate", 80], ["forward", -0.3]]},
     "LD1,LD2": {"pre": [["rotate", 80], ["forward", -0.3], ["rotate", 150], ["forward", 0.6]]},
     "RD1,RD2": {"pre": [["rotate", 90], ["forward", -0.4]]},
-    "CL6,CL7,CL8,CL9,CL10": {"pre": [["rotate", 30], ["forward", -0.3]]},
+    "CL6,CL7,CL8,CL9,CL10,CL6_UP,CL7_UP,CL8_UP,CL9_UP,CL10_UP": {"pre": [["rotate", 30], ["forward", -0.3]]},
     "default": {"pre": [["rotate", 90], ["forward", -0.15]]}
   },
 
@@ -229,7 +249,7 @@
   },
 
   "RD2": {
-    "CL1,CL2,CL3,CL4,CL5,LD1,LD2": {"waypoints": ["start_left"]},
+    "CL1,CL2,CL3,CL4,CL5,CL1_UP,CL2_UP,CL3_UP,CL4_UP,CL5_UP,LD1,LD2": {"waypoints": ["start_left"]},
     "default": {}
   },
 

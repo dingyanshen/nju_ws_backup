@@ -3,6 +3,7 @@
 
 import os
 import pickle
+import time
 import codecs
 import rospy
 import json
@@ -173,6 +174,9 @@ class MainController: # 基础功能类
         # 延后邮件
         self.delayed_mails = []
 
+        # 计时器
+        self.start_time = None  # 任务开始时间
+
     def check_rescue_mode(self): # 检查救援模式
         # 检查状态文件是否存在
         if os.path.exists(self.state_manager.save_path):
@@ -213,8 +217,12 @@ class MainController: # 基础功能类
         ]
         for line in welcome_msg:
             print(line)
+        
         # 按下 ENTER 开始跑车
         raw_input("按下 ENTER 开始跑车...")
+
+        # 开始计时
+        self.start_time = time.time()
 
     def end(self): # 结束界面
         end_msg = [
@@ -228,6 +236,26 @@ class MainController: # 基础功能类
         ]
         for line in end_msg:
             print(line)
+        
+        # 计算总耗时
+        elapsed_time = time.time() - self.start_time
+        minutes = int(elapsed_time // 60)
+        seconds = int(elapsed_time % 60)
+        print("任务耗时： {} 分 {} 秒".format(minutes, seconds))
+
+        # # 计算总得分
+        # grabbed_count = int(raw_input("抓取邮件成功数："))
+        # delivered_count = int(raw_input("投递邮件成功数："))
+        # correct_delivered_count = int(raw_input("投递邮件正确数："))
+        # collisions_count = int(raw_input("出现碰撞次数："))
+        # rescue_requests_count = int(raw_input("申请救援次数："))
+        # rescue_requests_count = min(rescue_requests_count, 5)
+        # drops_count = int(raw_input("邮件掉落次数："))
+        # drops_count = min(drops_count, 10)
+
+        # total_score = (grabbed_count * 1) + (delivered_count * 1.5) + (correct_delivered_count * 2) + 10 - (collisions_count * 1) - (rescue_requests_count * 2) - (drops_count * 1)
+
+        # print("任务得分：{}".format(total_score))
 
     def loadToDict(self, file_path, mode): # 导入相关参数
         if mode == "pose":
@@ -463,20 +491,8 @@ class MainController(MainController): # 拍照服务类
                     })
                     self.success_provinces.add(result)
                 else:
-                    self.box_retry_move() # 再次重试移动
-                    print("邮箱第二次重试移动...")
-                    response = self.photo_box_proxy()
-                    result = response.result
-                    if result in self.expected_provinces and result not in self.success_provinces:
-                        self.mail_box.append({
-                            'box_id': box_id,
-                            'result': result,
-                            'side': 'L' if box_id.startswith('L') else 'R',
-                        })
-                        self.success_provinces.add(result)
-                    else:
-                        self.failed_boxes.append(box_id)
-                        print("经过两次重试移动后，邮箱仍未识别成功，记录为失败或重复邮箱！")
+                    self.failed_boxes.append(box_id)
+                    print("经过重试移动后，邮箱仍未识别成功，记录为失败或重复邮箱！")
         except rospy.ServiceException as e:
             print("邮箱拍照服务调用失败!")
         self.state_manager.save_state(self)
