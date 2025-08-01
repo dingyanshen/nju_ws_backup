@@ -1,5 +1,6 @@
 # Hashes of file build rules.
 2bd3d59d63f7dd59345ac41b0b3dd932 /home/eaibot/nju_ws/devel/include/camera/PhotoService.h
+401f659cafb7538ae12f2af0ca4e306f /home/eaibot/nju_ws/devel/include/camera/PhotoboxSICHUANService.h
 d46d25aa380ce9a7c93dfc1b9155fd4f /home/eaibot/nju_ws/devel/include/camera/PhotoboxService.h
 65bf8f051d5a5f30a82354224788bf49 /home/eaibot/nju_ws/devel/include/camera/PhotoshelfService.h
 6d1512ba680cfd433cda0889faa6b62e /home/eaibot/nju_ws/devel/include/dobot/ClearAllAlarmsState.h
@@ -71,6 +72,7 @@ c927ed1d7e5a9f3db0114c88a312715f /home/eaibot/nju_ws/devel/include/motion_contro
 29abc3c45cd0caf1559cb469444e88aa /home/eaibot/nju_ws/devel/include/motion_control/getRightDist.h
 7bc1714a31ec75b40529dba6155b7e45 /home/eaibot/nju_ws/devel/include/motion_control/getRightFrontDist.h
 500004766d190beac60f14eaba5da0f3 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoService.py
+aa46b244543fac52ef11406fdac14115 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxSICHUANService.py
 79fee9a831991795fc732043c6737a7f /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxService.py
 ffc5e7a070d86b1c292da69a5475856b /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoshelfService.py
 2bcdb53c250b331a0e709433d102f5d3 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/__init__.py
@@ -145,6 +147,7 @@ d93242f4c2934e5a4b7fde0aac80336a /home/eaibot/nju_ws/devel/lib/python2.7/dist-pa
 ff173a224534f2b4717758afe2d59f01 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/motion_control/srv/_getRightDist.py
 4b8486a09361fb63993f6955e728cda1 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/motion_control/srv/_getRightFrontDist.py
 fb27dfc79d65f095a01ba19ea822f73a /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoService.lisp
+237c186deb57fa26d0dae1d8a207bb6f /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxSICHUANService.lisp
 2f838e6445c64c4e56edefe596c9bb73 /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxService.lisp
 b420cffe2d334dc29b372441d3dc38eb /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoshelfService.lisp
 e89525fa13b8fb36d00a8db844f6cb4c /home/eaibot/nju_ws/devel/share/common-lisp/ros/dobot/srv/ClearAllAlarmsState.lisp
@@ -216,6 +219,7 @@ b252a4034c40d37836fd58046a5dc727 /home/eaibot/nju_ws/devel/share/common-lisp/ros
 f4c4277dececa6237df598cf0bbc6b85 /home/eaibot/nju_ws/devel/share/common-lisp/ros/motion_control/srv/getRightDist.lisp
 7fe6f18116ee06d22e941ba9d97fc50e /home/eaibot/nju_ws/devel/share/common-lisp/ros/motion_control/srv/getRightFrontDist.lisp
 daaa0d93ed49f942f2627de5b640385f /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoService.js
+6ca09cddc6b786d6e6551ab723cf8dad /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxSICHUANService.js
 d747f2dc4945880fc7a34796a8141549 /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxService.js
 281faba2d33fee2dde8af41c2acb70e4 /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoshelfService.js
 5cd925addf061efc56bc57d048a907d7 /home/eaibot/nju_ws/devel/share/gennodejs/ros/dobot/srv/ClearAllAlarmsState.js
@@ -288,6 +292,7 @@ d6fcdc322abc54bab1123e594eba72dc /home/eaibot/nju_ws/devel/share/gennodejs/ros/d
 3cc5c8be56b96613ac3e0e4f55883de4 /home/eaibot/nju_ws/devel/share/gennodejs/ros/motion_control/srv/getRightFrontDist.js
 a9f77f91f661ed88aa941e90be6cc218 /home/eaibot/nju_ws/devel/share/roseus/ros/camera/manifest.l
 33afd7fecf19ac12f1b596ef3ab7e4b5 /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoService.l
+1452b40805e907dcd6a137ff81ea4845 /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoboxSICHUANService.l
 9332c1c708eeb75037c46ba5d5451244 /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoboxService.l
 d4712b246ffcd86e2332670a0cf6b79b /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoshelfService.l
 cfa1da92945ba0db73df90554c10d908 /home/eaibot/nju_ws/devel/share/roseus/ros/dobot/manifest.l
@@ -362,6 +367,7 @@ b9b0f7723578104f7a10734f31d02a26 /home/eaibot/nju_ws/devel/share/roseus/ros/moti
 02dbfca7580956dc9fb3abae46f2046d /home/eaibot/nju_ws/devel/share/roseus/ros/motion_control/srv/getRightFrontDist.l
 0120c659710125ab259910de18aeb5a8 CMakeFiles/clean_test_results
 f183a0db8a7657920eacec43d081dade camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoService
+1b5a47fbbb51eaeb7b31af7bd2568cb1 camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxSICHUANService
 40b7e9aa202b1edad09b85679a45a382 camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxService
 874e2dc17309a4860cbb97be96a56b6f camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoshelfService
 9a4bbc1c38f26c9228a968d258e19659 camera/CMakeFiles/camera_generate_messages_cpp

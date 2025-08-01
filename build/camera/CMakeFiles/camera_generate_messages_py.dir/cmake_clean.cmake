@@ -2,6 +2,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/camera_generate_messages_py"
   "/home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoshelfService.py"
   "/home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxService.py"
+  "/home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxSICHUANService.py"
   "/home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoService.py"
   "/home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/__init__.py"
 )

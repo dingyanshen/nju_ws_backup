@@ -229,6 +229,25 @@ def box():
     text_num = find_province_number(text_results, province_match, province_num)
     socket.send(str(text_num).encode())
 
+def box_sichuan():
+    #专门识别四川的参数
+    #[box]接收快递箱拍照的图片路径，返回文字识别结果
+    img = cv2.imread(message)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # 预留参数
+    # detail=1, paragraph=False, text_threshold=0.35,
+    # low_text=0.15, link_threshold=0.1, contrast_ths=0.05,
+    # adjust_contrast=0.9, mag_ratio=1.0, add_margin=0.3,
+    # slope_ths=0.05, ycenter_ths=0.7, height_ths=0.7, width_ths=0.9
+    results = reader.readtext(gray, detail=1, paragraph=False, text_threshold=0.35,
+                              low_text=0.15, link_threshold=0.1, contrast_ths=0.05,
+                              adjust_contrast=0.9, mag_ratio=1.0, add_margin=0.3,
+                              slope_ths=0.05, ycenter_ths=0.7, height_ths=0.7, width_ths=0.9)
+    text_results = [result[1] for result in results]
+    print("识别结果:", text_results)
+    text_num = find_province_number(text_results, province_match, province_num)
+    socket.send(str(text_num).encode())
+
 def catch():
     # [catch]接收抓取时拍照的图片路径，返回切割失败或error路径
     # mode 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
@@ -348,7 +367,7 @@ if __name__ == "__main__":
                       # '江', '讧',
 
                         '安', '女', '妄', '桉',
-                        '徽', '徵', '傲', '僦', '蔹', '巅',
+                        '徽', '徵', '傲', '僦', '蔹', '巅', '蠃', '筱',
 
                         '河',
                       # '南', '雨', '两',
@@ -362,8 +381,8 @@ if __name__ == "__main__":
                         '广',
                         '东', '玄', '套',
 
-                        '福', '梅', '橱', '橘',
-                        '建', '处', '廷', '迹',]
+                        '福', '梅', '橱', '橘', '槁', '祸', '褐', '榴',
+                        '建', '处', '廷', '迹', '垂',]
     
     province_num = [  # 1, 1,
                         1, 1, 1, 1,
@@ -372,7 +391,7 @@ if __name__ == "__main__":
                       # 2, 2,
 
                         3, 3, 3, 3,
-                        3, 3, 3, 3, 3, 3,
+                        3, 3, 3, 3, 3, 3, 3, 3,
 
                         4,
                       # 4, 4, 4,
@@ -386,8 +405,8 @@ if __name__ == "__main__":
                         7,
                         7, 7, 7,
 
-                        8, 8, 8, 8,
-                        8, 8, 8, 8,]
+                        8, 8, 8, 8, 8, 8, 8, 8,
+                        8, 8, 8, 8, 8,]
     
     province_match_double = ['江苏', '讧苏',
                              '江茆', '讧茆',
@@ -403,6 +422,8 @@ if __name__ == "__main__":
                              '安僦', '女僦', '妄僦', '桉僦',
                              '安蔹', '女蔹', '妄蔹', '桉蔹',
                              '安巅', '女巅', '妄巅', '桉巅',
+                             '安蠃', '女蠃', '妄蠃', '桉蠃',
+                             '安筱', '女筱', '妄筱', '桉筱',
 
                              '河南',
                              '河雨',
@@ -418,10 +439,11 @@ if __name__ == "__main__":
                              '广玄',
                              '广套',
 
-                             '福建', '梅建', '橱建', '橘建',
-                             '福处', '梅处', '橱处', '橘处',
-                             '福廷', '梅廷', '橱廷', '橘廷',
-                             '福迹', '梅迹', '橱迹', '橘迹',]
+                             '福建', '梅建', '橱建', '橘建', '槁建', '祸建', '褐建', '榴建',
+                             '福处', '梅处', '橱处', '橘处', '槁处', '祸处', '褐处', '榴处',
+                             '福廷', '梅廷', '橱廷', '橘廷', '槁廷', '祸廷', '褐廷', '榴廷',
+                             '福迹', '梅迹', '橱迹', '橘迹', '槁迹', '祸迹', '褐迹', '榴迹',
+                             '福垂', '梅垂', '橱垂', '橘垂', '槁垂', '祸垂', '褐垂', '榴垂',]
     
     province_num_double = [1, 1,
                            1, 1,
@@ -431,6 +453,8 @@ if __name__ == "__main__":
                            2, 2, 2,
                            2, 2, 2,
 
+                           3, 3, 3, 3,
+                           3, 3, 3, 3,
                            3, 3, 3, 3,
                            3, 3, 3, 3,
                            3, 3, 3, 3,
@@ -452,10 +476,11 @@ if __name__ == "__main__":
                            7,
                            7,
 
-                           8, 8, 8, 8,
-                           8, 8, 8, 8,
-                           8, 8, 8, 8,
-                           8, 8, 8, 8,]
+                           8, 8, 8, 8, 8, 8, 8, 8,
+                           8, 8, 8, 8, 8, 8, 8, 8,
+                           8, 8, 8, 8, 8, 8, 8, 8,
+                           8, 8, 8, 8, 8, 8, 8, 8,
+                           8, 8, 8, 8, 8, 8, 8, 8,]
     
     print("摄像头服务端已启动，等待处理图片...")
     while True:
@@ -469,6 +494,8 @@ if __name__ == "__main__":
                 qrcode_points()
             elif message.endswith("box.jpg"):
                 box()
+            elif message.endswith("box_sichuan.jpg"):
+                box_sichuan()
             elif message.endswith("cropped.jpg"):
                 shelf()
             elif message.endswith("catch.jpg"):

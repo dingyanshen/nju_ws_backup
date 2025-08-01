@@ -1,7 +1,7 @@
 # generated from genmsg/cmake/pkg-genmsg.context.in
 
 messages_str = ""
-services_str = "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv;/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv;/home/eaibot/nju_ws/src/camera/srv/PhotoshelfService.srv"
+services_str = "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv;/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv;/home/eaibot/nju_ws/src/camera/srv/PhotoshelfService.srv;/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv"
 pkg_name = "camera"
 dependencies_str = "std_msgs"
 langs = "gencpp;geneus;genlisp;gennodejs;genpy"

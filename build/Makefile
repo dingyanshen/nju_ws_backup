@@ -296,19 +296,6 @@ camera_generate_messages_py/fast:
 .PHONY : camera_generate_messages_py/fast
 
 #=============================================================================
-# Target rules for targets named camera_gennodejs
-
-# Build rule for target.
-camera_gennodejs: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 camera_gennodejs
-.PHONY : camera_gennodejs
-
-# fast build rule for target.
-camera_gennodejs/fast:
-	$(MAKE) -f camera/CMakeFiles/camera_gennodejs.dir/build.make camera/CMakeFiles/camera_gennodejs.dir/build
-.PHONY : camera_gennodejs/fast
-
-#=============================================================================
 # Target rules for targets named camera_generate_messages_nodejs
 
 # Build rule for target.
@@ -398,6 +385,32 @@ _camera_generate_messages_check_deps_PhotoService: cmake_check_build_system
 _camera_generate_messages_check_deps_PhotoService/fast:
 	$(MAKE) -f camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoService.dir/build.make camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoService.dir/build
 .PHONY : _camera_generate_messages_check_deps_PhotoService/fast
+
+#=============================================================================
+# Target rules for targets named camera_gennodejs
+
+# Build rule for target.
+camera_gennodejs: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 camera_gennodejs
+.PHONY : camera_gennodejs
+
+# fast build rule for target.
+camera_gennodejs/fast:
+	$(MAKE) -f camera/CMakeFiles/camera_gennodejs.dir/build.make camera/CMakeFiles/camera_gennodejs.dir/build
+.PHONY : camera_gennodejs/fast
+
+#=============================================================================
+# Target rules for targets named _camera_generate_messages_check_deps_PhotoboxSICHUANService
+
+# Build rule for target.
+_camera_generate_messages_check_deps_PhotoboxSICHUANService: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 _camera_generate_messages_check_deps_PhotoboxSICHUANService
+.PHONY : _camera_generate_messages_check_deps_PhotoboxSICHUANService
+
+# fast build rule for target.
+_camera_generate_messages_check_deps_PhotoboxSICHUANService/fast:
+	$(MAKE) -f camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxSICHUANService.dir/build.make camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxSICHUANService.dir/build
+.PHONY : _camera_generate_messages_check_deps_PhotoboxSICHUANService/fast
 
 #=============================================================================
 # Target rules for targets named _camera_generate_messages_check_deps_PhotoboxService
@@ -2411,7 +2424,6 @@ help:
 	@echo "... gtest"
 	@echo "... gtest_main"
 	@echo "... camera_generate_messages_py"
-	@echo "... camera_gennodejs"
 	@echo "... camera_generate_messages_nodejs"
 	@echo "... camera_genlisp"
 	@echo "... camera_geneus"
@@ -2419,6 +2431,8 @@ help:
 	@echo "... camera_gencpp"
 	@echo "... camera_generate_messages_cpp"
 	@echo "... _camera_generate_messages_check_deps_PhotoService"
+	@echo "... camera_gennodejs"
+	@echo "... _camera_generate_messages_check_deps_PhotoboxSICHUANService"
 	@echo "... _camera_generate_messages_check_deps_PhotoboxService"
 	@echo "... std_msgs_generate_messages_py"
 	@echo "... roscpp_generate_messages_py"

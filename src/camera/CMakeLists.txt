@@ -19,6 +19,7 @@ add_service_files(
   PhotoService.srv
   PhotoboxService.srv
   PhotoshelfService.srv
+  PhotoboxSICHUANService.srv
 )
 
 generate_messages(

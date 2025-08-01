@@ -181,21 +181,6 @@ camera_generate_messages_py/fast:
 .PHONY : camera_generate_messages_py/fast
 
 # Convenience name for target.
-camera/CMakeFiles/camera_gennodejs.dir/rule:
-	cd /home/eaibot/nju_ws/build && $(MAKE) -f CMakeFiles/Makefile2 camera/CMakeFiles/camera_gennodejs.dir/rule
-.PHONY : camera/CMakeFiles/camera_gennodejs.dir/rule
-
-# Convenience name for target.
-camera_gennodejs: camera/CMakeFiles/camera_gennodejs.dir/rule
-
-.PHONY : camera_gennodejs
-
-# fast build rule for target.
-camera_gennodejs/fast:
-	cd /home/eaibot/nju_ws/build && $(MAKE) -f camera/CMakeFiles/camera_gennodejs.dir/build.make camera/CMakeFiles/camera_gennodejs.dir/build
-.PHONY : camera_gennodejs/fast
-
-# Convenience name for target.
 camera/CMakeFiles/camera_generate_messages_nodejs.dir/rule:
 	cd /home/eaibot/nju_ws/build && $(MAKE) -f CMakeFiles/Makefile2 camera/CMakeFiles/camera_generate_messages_nodejs.dir/rule
 .PHONY : camera/CMakeFiles/camera_generate_messages_nodejs.dir/rule
@@ -299,6 +284,36 @@ _camera_generate_messages_check_deps_PhotoService: camera/CMakeFiles/_camera_gen
 _camera_generate_messages_check_deps_PhotoService/fast:
 	cd /home/eaibot/nju_ws/build && $(MAKE) -f camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoService.dir/build.make camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoService.dir/build
 .PHONY : _camera_generate_messages_check_deps_PhotoService/fast
+
+# Convenience name for target.
+camera/CMakeFiles/camera_gennodejs.dir/rule:
+	cd /home/eaibot/nju_ws/build && $(MAKE) -f CMakeFiles/Makefile2 camera/CMakeFiles/camera_gennodejs.dir/rule
+.PHONY : camera/CMakeFiles/camera_gennodejs.dir/rule
+
+# Convenience name for target.
+camera_gennodejs: camera/CMakeFiles/camera_gennodejs.dir/rule
+
+.PHONY : camera_gennodejs
+
+# fast build rule for target.
+camera_gennodejs/fast:
+	cd /home/eaibot/nju_ws/build && $(MAKE) -f camera/CMakeFiles/camera_gennodejs.dir/build.make camera/CMakeFiles/camera_gennodejs.dir/build
+.PHONY : camera_gennodejs/fast
+
+# Convenience name for target.
+camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxSICHUANService.dir/rule:
+	cd /home/eaibot/nju_ws/build && $(MAKE) -f CMakeFiles/Makefile2 camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxSICHUANService.dir/rule
+.PHONY : camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxSICHUANService.dir/rule
+
+# Convenience name for target.
+_camera_generate_messages_check_deps_PhotoboxSICHUANService: camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxSICHUANService.dir/rule
+
+.PHONY : _camera_generate_messages_check_deps_PhotoboxSICHUANService
+
+# fast build rule for target.
+_camera_generate_messages_check_deps_PhotoboxSICHUANService/fast:
+	cd /home/eaibot/nju_ws/build && $(MAKE) -f camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxSICHUANService.dir/build.make camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxSICHUANService.dir/build
+.PHONY : _camera_generate_messages_check_deps_PhotoboxSICHUANService/fast
 
 # Convenience name for target.
 camera/CMakeFiles/_camera_generate_messages_check_deps_PhotoboxService.dir/rule:
@@ -687,8 +702,6 @@ help:
 	@echo "... edit_cache"
 	@echo "... install/local"
 	@echo "... camera_generate_messages_py"
-	@echo "... test"
-	@echo "... camera_gennodejs"
 	@echo "... camera_generate_messages_nodejs"
 	@echo "... camera_genlisp"
 	@echo "... camera_geneus"
@@ -696,6 +709,9 @@ help:
 	@echo "... camera_gencpp"
 	@echo "... camera_generate_messages_cpp"
 	@echo "... _camera_generate_messages_check_deps_PhotoService"
+	@echo "... test"
+	@echo "... camera_gennodejs"
+	@echo "... _camera_generate_messages_check_deps_PhotoboxSICHUANService"
 	@echo "... install/strip"
 	@echo "... _camera_generate_messages_check_deps_PhotoboxService"
 	@echo "... std_msgs_generate_messages_py"

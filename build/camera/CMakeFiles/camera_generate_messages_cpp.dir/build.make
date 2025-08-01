@@ -55,6 +55,7 @@ include camera/CMakeFiles/camera_generate_messages_cpp.dir/progress.make
 
 camera/CMakeFiles/camera_generate_messages_cpp: /home/eaibot/nju_ws/devel/include/camera/PhotoshelfService.h
 camera/CMakeFiles/camera_generate_messages_cpp: /home/eaibot/nju_ws/devel/include/camera/PhotoboxService.h
+camera/CMakeFiles/camera_generate_messages_cpp: /home/eaibot/nju_ws/devel/include/camera/PhotoboxSICHUANService.h
 camera/CMakeFiles/camera_generate_messages_cpp: /home/eaibot/nju_ws/devel/include/camera/PhotoService.h
 
 
@@ -72,16 +73,24 @@ camera/CMakeFiles/camera_generate_messages_cpp: /home/eaibot/nju_ws/devel/includ
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating C++ code from camera/PhotoboxService.srv"
 	cd /home/eaibot/nju_ws/src/camera && /home/eaibot/nju_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/include/camera -e /opt/ros/kinetic/share/gencpp/cmake/..
 
+/home/eaibot/nju_ws/devel/include/camera/PhotoboxSICHUANService.h: /opt/ros/kinetic/lib/gencpp/gen_cpp.py
+/home/eaibot/nju_ws/devel/include/camera/PhotoboxSICHUANService.h: /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv
+/home/eaibot/nju_ws/devel/include/camera/PhotoboxSICHUANService.h: /opt/ros/kinetic/share/gencpp/msg.h.template
+/home/eaibot/nju_ws/devel/include/camera/PhotoboxSICHUANService.h: /opt/ros/kinetic/share/gencpp/srv.h.template
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating C++ code from camera/PhotoboxSICHUANService.srv"
+	cd /home/eaibot/nju_ws/src/camera && /home/eaibot/nju_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/include/camera -e /opt/ros/kinetic/share/gencpp/cmake/..
+
 /home/eaibot/nju_ws/devel/include/camera/PhotoService.h: /opt/ros/kinetic/lib/gencpp/gen_cpp.py
 /home/eaibot/nju_ws/devel/include/camera/PhotoService.h: /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv
 /home/eaibot/nju_ws/devel/include/camera/PhotoService.h: /opt/ros/kinetic/share/gencpp/msg.h.template
 /home/eaibot/nju_ws/devel/include/camera/PhotoService.h: /opt/ros/kinetic/share/gencpp/srv.h.template
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating C++ code from camera/PhotoService.srv"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating C++ code from camera/PhotoService.srv"
 	cd /home/eaibot/nju_ws/src/camera && /home/eaibot/nju_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/include/camera -e /opt/ros/kinetic/share/gencpp/cmake/..
 
 camera_generate_messages_cpp: camera/CMakeFiles/camera_generate_messages_cpp
 camera_generate_messages_cpp: /home/eaibot/nju_ws/devel/include/camera/PhotoshelfService.h
 camera_generate_messages_cpp: /home/eaibot/nju_ws/devel/include/camera/PhotoboxService.h
+camera_generate_messages_cpp: /home/eaibot/nju_ws/devel/include/camera/PhotoboxSICHUANService.h
 camera_generate_messages_cpp: /home/eaibot/nju_ws/devel/include/camera/PhotoService.h
 camera_generate_messages_cpp: camera/CMakeFiles/camera_generate_messages_cpp.dir/build.make
 

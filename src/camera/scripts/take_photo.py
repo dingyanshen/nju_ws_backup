@@ -5,6 +5,7 @@ import rospy
 from camera.srv import PhotoService, PhotoServiceResponse, PhotoServiceRequest
 from camera.srv import PhotoshelfService, PhotoshelfServiceResponse, PhotoshelfServiceRequest
 from camera.srv import PhotoboxService, PhotoboxServiceResponse, PhotoboxServiceRequest
+from camera.srv import PhotoboxSICHUANService, PhotoboxSICHUANServiceResponse, PhotoboxSICHUANServiceRequest
 import cv2
 import zmq
 
@@ -19,6 +20,7 @@ class PhotoServiceNode:
         self.service = rospy.Service('photo_service', PhotoService, self.camera_catch)
         self.service_shelf = rospy.Service('photo_shelf_service', PhotoshelfService, self.handle_shelf_photo)
         self.service_box = rospy.Service('photo_box_service', PhotoboxService, self.handle_box_photo)
+        self.service_box_sichuan = rospy.Service('photo_box_service_sichuan', PhotoboxSICHUANService, self.handle_box_photo_sichuan)
         self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
             print("摄像头初始化失败！")
@@ -235,6 +237,29 @@ class PhotoServiceNode:
         num_province = ['无效', '江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
         print("邮箱省份：" + num_province[int(response)])
         return PhotoboxServiceResponse(int(response))
+    
+    def handle_box_photo_sichuan(self, req):
+        # 四川专用
+        # 此函数用于处理main_process.py中的快递箱拍照请求
+        # 返回值为快递箱省份 0 1 2 3 4 5 6 7 8
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        for _ in range(10):
+            self.cap.grab()
+        ret, frame = self.cap.read()
+        frame = frame[160:240, 0:320]
+        if not ret:
+            print("无法读取摄像头！")
+            return PhotoboxSICHUANServiceResponse(0)
+        image_name = time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+        image_path = "/home/eaibot/nju_ws/src/camera/img/{}_box_sichuan.jpg".format(image_name)
+        cv2.imwrite(image_path, frame, [cv2.IMWRITE_PNG_COMPRESSION, 0]) 
+        socket.send_string(image_path)
+        # [box]与server.py建立连接：发送快递箱拍照的图片路径，等待文字识别结果
+        response = socket.recv()
+        num_province = ['无效', '江苏', '浙江', '安徽', '河南', '湖南', '四川', '广东', '福建']
+        print("邮箱省份：" + num_province[int(response)])
+        return PhotoboxSICHUANServiceResponse(int(response))
     
 if __name__ == "__main__":
     node = PhotoServiceNode()

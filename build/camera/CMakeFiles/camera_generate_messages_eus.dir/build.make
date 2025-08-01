@@ -55,6 +55,7 @@ include camera/CMakeFiles/camera_generate_messages_eus.dir/progress.make
 
 camera/CMakeFiles/camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoshelfService.l
 camera/CMakeFiles/camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoboxService.l
+camera/CMakeFiles/camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoboxSICHUANService.l
 camera/CMakeFiles/camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoService.l
 camera/CMakeFiles/camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/manifest.l
 
@@ -69,18 +70,24 @@ camera/CMakeFiles/camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating EusLisp code from camera/PhotoboxService.srv"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv
 
+/home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoboxSICHUANService.l: /opt/ros/kinetic/lib/geneus/gen_eus.py
+/home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoboxSICHUANService.l: /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating EusLisp code from camera/PhotoboxSICHUANService.srv"
+	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv
+
 /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoService.l: /opt/ros/kinetic/lib/geneus/gen_eus.py
 /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoService.l: /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating EusLisp code from camera/PhotoService.srv"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating EusLisp code from camera/PhotoService.srv"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv
 
 /home/eaibot/nju_ws/devel/share/roseus/ros/camera/manifest.l: /opt/ros/kinetic/lib/geneus/gen_eus.py
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating EusLisp manifest code for camera"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Generating EusLisp manifest code for camera"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/geneus/cmake/../../../lib/geneus/gen_eus.py -m -o /home/eaibot/nju_ws/devel/share/roseus/ros/camera camera std_msgs
 
 camera_generate_messages_eus: camera/CMakeFiles/camera_generate_messages_eus
 camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoshelfService.l
 camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoboxService.l
+camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoboxSICHUANService.l
 camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/srv/PhotoService.l
 camera_generate_messages_eus: /home/eaibot/nju_ws/devel/share/roseus/ros/camera/manifest.l
 camera_generate_messages_eus: camera/CMakeFiles/camera_generate_messages_eus.dir/build.make

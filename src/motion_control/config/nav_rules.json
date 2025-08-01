@@ -1,11 +1,13 @@
 {
   "CL1": {
     "CL1_UP": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "default": {}
   },
   
   "CL2": {
     "CL2_UP": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "CL1": {"pre": [["forward", -0.15]]},
     "CL1_UP": {"pre": [["forward", -0.15]]},
     "default": {}
@@ -13,6 +15,7 @@
   
   "CL3": {
     "CL3_UP": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "CL2": {"pre": [["forward", -0.15]]},
     "CL2_UP": {"pre": [["forward", -0.15]]},
     "CL1": {"pre": [["forward", -0.3]]},
@@ -22,6 +25,7 @@
   
   "CL4": {
     "CL4_UP": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "CL3": {"pre": [["forward", -0.15]]},
     "CL3_UP": {"pre": [["forward", -0.15]]},
     "CL2": {"pre": [["forward", -0.3]]},
@@ -33,6 +37,7 @@
   
   "CL5": {
     "CL5_UP": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "CL4": {"pre": [["forward", -0.15]]},
     "CL4_UP": {"pre": [["forward", -0.15]]},
     "CL3": {"pre": [["forward", -0.3]]},
@@ -102,11 +107,13 @@
 
   "CL1_UP": {
     "CL1": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "default": {}
   },
   
   "CL2_UP": {
     "CL2": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "CL1": {"pre": [["forward", -0.15]]},
     "CL1_UP": {"pre": [["forward", -0.15]]},
     "default": {}
@@ -114,6 +121,7 @@
   
   "CL3_UP": {
     "CL3": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "CL2": {"pre": [["forward", -0.15]]},
     "CL2_UP": {"pre": [["forward", -0.15]]},
     "CL1": {"pre": [["forward", -0.3]]},
@@ -123,6 +131,7 @@
   
   "CL4_UP": {
     "CL4": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "CL3": {"pre": [["forward", -0.15]]},
     "CL3_UP": {"pre": [["forward", -0.15]]},
     "CL2": {"pre": [["forward", -0.3]]},
@@ -134,6 +143,7 @@
   
   "CL5_UP": {
     "CL5": {},
+    "LD1,LD2": {"pre": [["rotate", -120], ["forward", -0.15]]},
     "CL4": {"pre": [["forward", -0.15]]},
     "CL4_UP": {"pre": [["forward", -0.15]]},
     "CL3": {"pre": [["forward", -0.3]]},

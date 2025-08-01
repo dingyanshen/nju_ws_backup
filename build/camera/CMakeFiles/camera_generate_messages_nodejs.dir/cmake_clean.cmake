@@ -2,6 +2,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/camera_generate_messages_nodejs"
   "/home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoshelfService.js"
   "/home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxService.js"
+  "/home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxSICHUANService.js"
   "/home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoService.js"
 )
 

@@ -55,6 +55,7 @@ include camera/CMakeFiles/camera_generate_messages_py.dir/progress.make
 
 camera/CMakeFiles/camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoshelfService.py
 camera/CMakeFiles/camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxService.py
+camera/CMakeFiles/camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxSICHUANService.py
 camera/CMakeFiles/camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoService.py
 camera/CMakeFiles/camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/__init__.py
 
@@ -69,21 +70,28 @@ camera/CMakeFiles/camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/pyt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Python code from SRV camera/PhotoboxService"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genpy/cmake/../../../lib/genpy/gensrv_py.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv
 
+/home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxSICHUANService.py: /opt/ros/kinetic/lib/genpy/gensrv_py.py
+/home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxSICHUANService.py: /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Python code from SRV camera/PhotoboxSICHUANService"
+	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genpy/cmake/../../../lib/genpy/gensrv_py.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv
+
 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoService.py: /opt/ros/kinetic/lib/genpy/gensrv_py.py
 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoService.py: /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Python code from SRV camera/PhotoService"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating Python code from SRV camera/PhotoService"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genpy/cmake/../../../lib/genpy/gensrv_py.py /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv
 
 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/__init__.py: /opt/ros/kinetic/lib/genpy/genmsg_py.py
 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/__init__.py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoshelfService.py
 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/__init__.py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxService.py
+/home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/__init__.py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxSICHUANService.py
 /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/__init__.py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoService.py
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating Python srv __init__.py for camera"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Generating Python srv __init__.py for camera"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genpy/cmake/../../../lib/genpy/genmsg_py.py -o /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv --initpy
 
 camera_generate_messages_py: camera/CMakeFiles/camera_generate_messages_py
 camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoshelfService.py
 camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxService.py
+camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoboxSICHUANService.py
 camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/_PhotoService.py
 camera_generate_messages_py: /home/eaibot/nju_ws/devel/lib/python2.7/dist-packages/camera/srv/__init__.py
 camera_generate_messages_py: camera/CMakeFiles/camera_generate_messages_py.dir/build.make

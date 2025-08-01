@@ -55,6 +55,7 @@ include camera/CMakeFiles/camera_generate_messages_lisp.dir/progress.make
 
 camera/CMakeFiles/camera_generate_messages_lisp: /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoshelfService.lisp
 camera/CMakeFiles/camera_generate_messages_lisp: /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxService.lisp
+camera/CMakeFiles/camera_generate_messages_lisp: /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxSICHUANService.lisp
 camera/CMakeFiles/camera_generate_messages_lisp: /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoService.lisp
 
 
@@ -68,14 +69,20 @@ camera/CMakeFiles/camera_generate_messages_lisp: /home/eaibot/nju_ws/devel/share
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Lisp code from camera/PhotoboxService.srv"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv
 
+/home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxSICHUANService.lisp: /opt/ros/kinetic/lib/genlisp/gen_lisp.py
+/home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxSICHUANService.lisp: /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Lisp code from camera/PhotoboxSICHUANService.srv"
+	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv
+
 /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoService.lisp: /opt/ros/kinetic/lib/genlisp/gen_lisp.py
 /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoService.lisp: /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Lisp code from camera/PhotoService.srv"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating Lisp code from camera/PhotoService.srv"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv
 
 camera_generate_messages_lisp: camera/CMakeFiles/camera_generate_messages_lisp
 camera_generate_messages_lisp: /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoshelfService.lisp
 camera_generate_messages_lisp: /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxService.lisp
+camera_generate_messages_lisp: /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxSICHUANService.lisp
 camera_generate_messages_lisp: /home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoService.lisp
 camera_generate_messages_lisp: camera/CMakeFiles/camera_generate_messages_lisp.dir/build.make
 

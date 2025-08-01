@@ -13,7 +13,7 @@ import math
 from collections import defaultdict
 from geometry_msgs.msg import Pose, PoseWithCovarianceStamped, Point, Quaternion
 from actionlib_msgs.msg import *
-from camera.srv import PhotoshelfService, PhotoboxService, PhotoService
+from camera.srv import PhotoshelfService, PhotoboxService, PhotoService, PhotoboxSICHUANService
 from dobot.srv import GraspService, ThrowService
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from basic_move import BasicMove
@@ -141,11 +141,13 @@ class MainController: # 基础功能类
         self.pub_initialpose = rospy.Publisher("/initialpose", PoseWithCovarianceStamped, queue_size=20)
         rospy.wait_for_service('photo_shelf_service')
         rospy.wait_for_service('photo_box_service')
+        rospy.wait_for_service('photo_box_service_sichuan')
         rospy.wait_for_service('photo_service')
         rospy.wait_for_service('dobot_grasp_service')
         rospy.wait_for_service('dobot_throw_service')
         self.photo_shelf_proxy = rospy.ServiceProxy('photo_shelf_service', PhotoshelfService)
         self.photo_box_proxy = rospy.ServiceProxy('photo_box_service', PhotoboxService)
+        self.photo_box_proxy_sichuan = rospy.ServiceProxy('photo_box_service_sichuan', PhotoboxSICHUANService)
         self.photo_proxy = rospy.ServiceProxy('photo_service', PhotoService)
         self.grasp_proxy = rospy.ServiceProxy('dobot_grasp_service', GraspService)
         self.throw_proxy = rospy.ServiceProxy('dobot_throw_service', ThrowService)
@@ -481,7 +483,7 @@ class MainController(MainController): # 拍照服务类
             else:
                 self.box_retry_move() # 重试移动
                 print("邮箱第一次重试移动...")
-                response = self.photo_box_proxy()
+                response = self.photo_box_proxy_sichuan()
                 result = response.result
                 if result in self.expected_provinces and result not in self.success_provinces:
                     self.mail_box.append({

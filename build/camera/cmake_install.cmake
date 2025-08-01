@@ -37,6 +37,7 @@ if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
     "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv"
     "/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv"
     "/home/eaibot/nju_ws/src/camera/srv/PhotoshelfService.srv"
+    "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv"
     )
 endif()
 

@@ -55,6 +55,7 @@ include camera/CMakeFiles/camera_generate_messages_nodejs.dir/progress.make
 
 camera/CMakeFiles/camera_generate_messages_nodejs: /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoshelfService.js
 camera/CMakeFiles/camera_generate_messages_nodejs: /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxService.js
+camera/CMakeFiles/camera_generate_messages_nodejs: /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxSICHUANService.js
 camera/CMakeFiles/camera_generate_messages_nodejs: /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoService.js
 
 
@@ -68,14 +69,20 @@ camera/CMakeFiles/camera_generate_messages_nodejs: /home/eaibot/nju_ws/devel/sha
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Javascript code from camera/PhotoboxService.srv"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv
 
+/home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxSICHUANService.js: /opt/ros/kinetic/lib/gennodejs/gen_nodejs.py
+/home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxSICHUANService.js: /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Javascript code from camera/PhotoboxSICHUANService.srv"
+	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv
+
 /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoService.js: /opt/ros/kinetic/lib/gennodejs/gen_nodejs.py
 /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoService.js: /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Javascript code from camera/PhotoService.srv"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/eaibot/nju_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating Javascript code from camera/PhotoService.srv"
 	cd /home/eaibot/nju_ws/build/camera && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/eaibot/nju_ws/src/camera/srv/PhotoService.srv -Icamera:/home/eaibot/nju_ws/src/camera/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -p camera -o /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv
 
 camera_generate_messages_nodejs: camera/CMakeFiles/camera_generate_messages_nodejs
 camera_generate_messages_nodejs: /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoshelfService.js
 camera_generate_messages_nodejs: /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxService.js
+camera_generate_messages_nodejs: /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoboxSICHUANService.js
 camera_generate_messages_nodejs: /home/eaibot/nju_ws/devel/share/gennodejs/ros/camera/srv/PhotoService.js
 camera_generate_messages_nodejs: camera/CMakeFiles/camera_generate_messages_nodejs.dir/build.make
 

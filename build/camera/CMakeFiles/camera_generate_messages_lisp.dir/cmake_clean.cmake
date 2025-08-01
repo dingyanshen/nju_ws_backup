@@ -2,6 +2,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/camera_generate_messages_lisp"
   "/home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoshelfService.lisp"
   "/home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxService.lisp"
+  "/home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoboxSICHUANService.lisp"
   "/home/eaibot/nju_ws/devel/share/common-lisp/ros/camera/srv/PhotoService.lisp"
 )
 

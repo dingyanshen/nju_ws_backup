@@ -1,6 +1,6 @@
 # generated from genmsg/cmake/pkg-genmsg.cmake.em
 
-message(STATUS "camera: 0 messages, 3 services")
+message(STATUS "camera: 0 messages, 4 services")
 
 set(MSG_I_FLAGS "-Icamera:/home/eaibot/nju_ws/src/camera/msg;-Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg")
 
@@ -25,6 +25,11 @@ add_custom_target(_camera_generate_messages_check_deps_${_filename}
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv" NAME_WE)
 add_custom_target(_camera_generate_messages_check_deps_${_filename}
   COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "camera" "/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv" ""
+)
+
+get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv" NAME_WE)
+add_custom_target(_camera_generate_messages_check_deps_${_filename}
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "camera" "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv" ""
 )
 
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv" NAME_WE)
@@ -53,6 +58,12 @@ _generate_srv_cpp(camera
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/camera
 )
 _generate_srv_cpp(camera
+  "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/camera
+)
+_generate_srv_cpp(camera
   "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv"
   "${MSG_I_FLAGS}"
   ""
@@ -74,6 +85,8 @@ add_dependencies(camera_generate_messages camera_generate_messages_cpp)
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoshelfService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_cpp _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv" NAME_WE)
+add_dependencies(camera_generate_messages_cpp _camera_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_cpp _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_cpp _camera_generate_messages_check_deps_${_filename})
@@ -102,6 +115,12 @@ _generate_srv_eus(camera
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/camera
 )
 _generate_srv_eus(camera
+  "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/camera
+)
+_generate_srv_eus(camera
   "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv"
   "${MSG_I_FLAGS}"
   ""
@@ -123,6 +142,8 @@ add_dependencies(camera_generate_messages camera_generate_messages_eus)
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoshelfService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_eus _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv" NAME_WE)
+add_dependencies(camera_generate_messages_eus _camera_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_eus _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_eus _camera_generate_messages_check_deps_${_filename})
@@ -151,6 +172,12 @@ _generate_srv_lisp(camera
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/camera
 )
 _generate_srv_lisp(camera
+  "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/camera
+)
+_generate_srv_lisp(camera
   "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv"
   "${MSG_I_FLAGS}"
   ""
@@ -172,6 +199,8 @@ add_dependencies(camera_generate_messages camera_generate_messages_lisp)
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoshelfService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_lisp _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv" NAME_WE)
+add_dependencies(camera_generate_messages_lisp _camera_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_lisp _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_lisp _camera_generate_messages_check_deps_${_filename})
@@ -200,6 +229,12 @@ _generate_srv_nodejs(camera
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/camera
 )
 _generate_srv_nodejs(camera
+  "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/camera
+)
+_generate_srv_nodejs(camera
   "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv"
   "${MSG_I_FLAGS}"
   ""
@@ -221,6 +256,8 @@ add_dependencies(camera_generate_messages camera_generate_messages_nodejs)
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoshelfService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_nodejs _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv" NAME_WE)
+add_dependencies(camera_generate_messages_nodejs _camera_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_nodejs _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_nodejs _camera_generate_messages_check_deps_${_filename})
@@ -249,6 +286,12 @@ _generate_srv_py(camera
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/camera
 )
 _generate_srv_py(camera
+  "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/camera
+)
+_generate_srv_py(camera
   "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv"
   "${MSG_I_FLAGS}"
   ""
@@ -270,6 +313,8 @@ add_dependencies(camera_generate_messages camera_generate_messages_py)
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoshelfService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_py _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxService.srv" NAME_WE)
+add_dependencies(camera_generate_messages_py _camera_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoboxSICHUANService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_py _camera_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/eaibot/nju_ws/src/camera/srv/PhotoService.srv" NAME_WE)
 add_dependencies(camera_generate_messages_py _camera_generate_messages_check_deps_${_filename})

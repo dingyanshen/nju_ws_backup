@@ -262,7 +262,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
         # environment at generation time
-        CMAKE_PREFIX_PATH = '/home/eaibot/nju_ws/devel;/home/eaibot/moveit_ws/devel;/home/eaibot/dashgo_ws/devel;/opt/ros/kinetic;/home/eaibot/apriltag_ws/devel_isolated/apriltag;/home/eaibot/apriltag_ws/devel_isolated/apriltag;/home/eaibot/apriltag_ws/devel_isolated/apriltag'.split(';')
+        CMAKE_PREFIX_PATH = '/home/eaibot/dashgo_ws/devel;/opt/ros/kinetic'.split(';')
         # prepend current workspace if not already part of CPP
         base_path = os.path.dirname(__file__)
         if base_path not in CMAKE_PREFIX_PATH:
