@@ -151,12 +151,12 @@ class Dobot():
     def safepose(self, x, y, z): #保证安全距离 内层约束
         # 上圆弧约束
         R = math.sqrt(x * x + y * y) # 机械臂半径
-        if R >= 301 and z >= 100: # 高处半径过大
+        if R >= 300 and z >= 90: # 高处半径过大
             print("过大半径：" + str(x) + " " + str(y))
-            x = x * 301 / R
-            y = y * 301 / R
-            print("调整半径301：" + str(x) + " " + str(y))
-        elif R >= 320 and z < 100: # 低处半径过大
+            x = x * 300 / R
+            y = y * 300 / R
+            print("调整半径300：" + str(x) + " " + str(y))
+        elif R >= 320 and z < 90: # 低处半径过大
             print("过大半径：" + str(x) + " " + str(y))
             x = x * 320 / R
             y = y * 320 / R
@@ -259,8 +259,8 @@ class Dobot():
         self.setTheta(0)
         rospy.sleep(0.1)
 
-        # 达到 (mail_x, mail_y, +18)
-        self.setPose(mail_x, mail_y, HEIGHT_UP+18, 0)
+        # 达到 (mail_x, mail_y, +20)
+        self.setPose(mail_x, mail_y, HEIGHT_UP+20, 0)
         rospy.sleep(0.1)
 
         # 舵机外伸到计算角
@@ -272,21 +272,21 @@ class Dobot():
         self.suckupObject()
         rospy.sleep(0.3)
 
-        # 抬起 (mail_x, mail_y, +18)
-        self.setPose(mail_x, mail_y, HEIGHT_UP+18, 0)
+        # 抬起 (mail_x, mail_y, +20)
+        self.setPose(mail_x, mail_y, HEIGHT_UP+20, 0)
         rospy.sleep(0.1)
 
-        # 抖动旋转避让 (mail_x, 195, +18) (mail_x+12, 195, +18) (mail_x+24, 195, +18)
-        self.setPose(mail_x, 195, HEIGHT_UP+18, 0)
+        # 抖动旋转避让 (mail_x, 195, +20) (mail_x+12, 195, +20) (mail_x+24, 195, +20)
+        self.setPose(mail_x, 195, HEIGHT_UP+20, 0)
         self.setTheta(rotation)
-        self.setPose(12+mail_x, 195, HEIGHT_UP+18, 0)
+        self.setPose(12+mail_x, 195, HEIGHT_UP+20, 0)
         self.setTheta(rotation - 0.08)
-        self.setPose(24+mail_x, 195, HEIGHT_UP+18, 0)
+        self.setPose(24+mail_x, 195, HEIGHT_UP+20, 0)
         self.setTheta(0.3)
         rospy.sleep(0.1)
         
-        # 转到平台上方 (250, 0, +18)
-        self.setPose(250, 0, HEIGHT_UP+18, 0)
+        # 转到平台上方 (250, 0, +20)
+        self.setPose(250, 0, HEIGHT_UP+20, 0)
 
         # 舵机内缩
         self.setTheta(0)
@@ -319,8 +319,8 @@ class Dobot():
         self.setTheta(0)
         rospy.sleep(0.1)
 
-        # 达到 (mail_x, mail_y, +18)
-        self.setPose(mail_x, mail_y, HEIGHT_DOWN+18, 0)
+        # 达到 (mail_x, mail_y, +20)
+        self.setPose(mail_x, mail_y, HEIGHT_DOWN+20, 0)
         rospy.sleep(0.1)
 
         # 舵机外伸到计算角
@@ -332,21 +332,21 @@ class Dobot():
         self.suckupObject()
         rospy.sleep(0.3)
 
-        # 抬起 (mail_x, mail_y, +18)
-        self.setPose(mail_x, mail_y, HEIGHT_DOWN+18, 0)
+        # 抬起 (mail_x, mail_y, +20)
+        self.setPose(mail_x, mail_y, HEIGHT_DOWN+20, 0)
         rospy.sleep(0.1)
 
-        # 抖动旋转避让 (mail_x, 195, +18) (mail_x+12, 195, +18) (mail_x+24, 195, +18)
-        self.setPose(mail_x, 195, HEIGHT_DOWN+18, 0)
+        # 抖动旋转避让 (mail_x, 195, +20) (mail_x+12, 195, +20) (mail_x+24, 195, +20)
+        self.setPose(mail_x, 195, HEIGHT_DOWN+20, 0)
         self.setTheta(rotation)
-        self.setPose(12+mail_x, 195, HEIGHT_DOWN+18, 0)
+        self.setPose(12+mail_x, 195, HEIGHT_DOWN+20, 0)
         self.setTheta(rotation - 0.08)
-        self.setPose(24+mail_x, 195, HEIGHT_DOWN+18, 0)
+        self.setPose(24+mail_x, 195, HEIGHT_DOWN+20, 0)
         self.setTheta(0.4)
         rospy.sleep(0.1)
 
-        # 转到平台上方略伸展 (280, 0, +18)
-        self.setPose(280, 0, HEIGHT_DOWN+18, 0)
+        # 转到平台上方略伸展 (280, 0, +20)
+        self.setPose(280, 0, HEIGHT_DOWN+20, 0)
 
         # 舵机内缩
         self.setTheta(0)
